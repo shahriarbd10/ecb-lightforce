@@ -1,0 +1,10 @@
+user:
+
+shahriarsgr_db_user
+
+pass:
+
+97xREEoMhcPZRegE
+
+LINK: mongodb+srv://shahriarsgr_db_user:97xREEoMhcPZRegE@ecblightforce.nnbrof1.mongodb.net/?appName=ecbLightforce
+

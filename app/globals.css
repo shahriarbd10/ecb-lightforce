@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #020a05;
+  color: #f3fff7;
+  background-image: radial-gradient(circle at 10% 10%, rgba(18, 102, 53, 0.2), transparent 30%),
+    radial-gradient(circle at 80% 0%, rgba(132, 255, 186, 0.12), transparent 35%);
+}
+
+.container-page {
+  @apply mx-auto max-w-6xl px-4 py-8;
+}
+
+.input {
+  @apply w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none ring-pitch-300 placeholder:text-white/35 focus:ring-1;
+}
+
+.btn-primary {
+  @apply rounded-xl bg-pitch-400 px-4 py-2 font-semibold text-black transition hover:bg-pitch-300;
+}
+
+.btn-muted {
+  @apply rounded-xl border border-white/15 px-4 py-2 text-white/85 transition hover:bg-white/10;
+}
+
+.glass-panel {
+  @apply rounded-2xl border border-white/15 bg-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl;
+}
+
+.glass-soft {
+  @apply rounded-xl border border-white/10 bg-white/5 backdrop-blur-lg;
+}
