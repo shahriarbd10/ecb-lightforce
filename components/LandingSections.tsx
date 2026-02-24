@@ -461,6 +461,16 @@ export default function LandingSections() {
                 <ManagedMediaPreview item={item} className="h-52 w-full" />
                 <div className="p-4">
                   <p className="text-sm font-semibold text-white">{item.title}</p>
+                  {item.type === "video" ? (
+                    <a
+                      href={item.linkUrl || item.mediaUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-block text-xs text-pitch-200 underline"
+                    >
+                      Open Video
+                    </a>
+                  ) : null}
                 </div>
               </article>
             ))

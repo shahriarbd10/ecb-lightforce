@@ -266,6 +266,7 @@ export default function AdminMediaManager() {
           </h2>
           <p className="mt-1 text-sm text-white/70">
             Upload from your device or paste public URLs. Media can be placed in hero, spotlight, reels, or ads.
+            For Facebook, prefer a public video/watch URL.
           </p>
         </div>
 

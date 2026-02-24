@@ -17,12 +17,40 @@ export function toEmbedUrl(input: string) {
       return id ? `https://player.vimeo.com/video/${id}` : input;
     }
     if (host.includes("facebook.com") || host.includes("fb.watch")) {
-      // Facebook videos should be public; plugin URL is the most reliable embeddable format.
-      return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(input)}&show_text=false&width=560`;
+      // Normalize share/watch URLs first, then map to plugin embed format.
+      const normalized = normalizeFacebookVideoUrl(url);
+      return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
+        normalized
+      )}&show_text=false&width=560`;
     }
 
     return input;
   } catch {
     return input;
   }
+}
+
+function normalizeFacebookVideoUrl(url: URL) {
+  const host = url.hostname.toLowerCase();
+  const path = url.pathname.replace(/\/+$/, "");
+
+  // fb.watch/<id> -> facebook watch URL
+  if (host.includes("fb.watch")) {
+    const id = path.split("/").filter(Boolean)[0];
+    return id ? `https://www.facebook.com/watch/?v=${id}` : url.toString();
+  }
+
+  // /share/v/<id> -> /watch/?v=<id>
+  const shareMatch = path.match(/\/share\/v\/([^/]+)/i);
+  if (shareMatch?.[1]) {
+    return `https://www.facebook.com/watch/?v=${shareMatch[1]}`;
+  }
+
+  // Already watch URL with v param
+  const watchId = url.searchParams.get("v");
+  if (watchId) {
+    return `https://www.facebook.com/watch/?v=${watchId}`;
+  }
+
+  return url.toString();
 }
