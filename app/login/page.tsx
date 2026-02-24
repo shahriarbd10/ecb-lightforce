@@ -1,14 +1,17 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 
 export default function LoginPage() {
+  const { status } = useSession();
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +19,17 @@ export default function LoginPage() {
     const url = new URL(window.location.href);
     const cb = url.searchParams.get("callbackUrl");
     if (cb) setCallbackUrl(normalizeCallbackPath(cb));
+
+    const savedEmail = window.localStorage.getItem("ecb_login_email");
+    if (savedEmail) setEmail(savedEmail);
   }, []);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      const safePath = normalizeCallbackPath(callbackUrl);
+      window.location.assign(`${window.location.origin}${safePath}`);
+    }
+  }, [status, callbackUrl]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -35,6 +48,12 @@ export default function LoginPage() {
       if (!result || result.error) {
         setError("Login failed. Check email/password, and ensure NEXTAUTH_URL matches this port.");
         return;
+      }
+
+      if (rememberMe) {
+        window.localStorage.setItem("ecb_login_email", email);
+      } else {
+        window.localStorage.removeItem("ecb_login_email");
       }
 
       const safePath = normalizeCallbackPath(callbackUrl);
@@ -70,6 +89,10 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+            </label>
+            <label className="inline-flex items-center gap-2 text-sm text-white/80">
+              <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+              Remember login
             </label>
 
             {error ? <p className="text-sm text-red-300">{error}</p> : null}

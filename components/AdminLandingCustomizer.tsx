@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { defaultLandingConfig, type LandingConfig } from "@/lib/landing-config";
+import LandingSections from "@/components/LandingSections";
 
 export default function AdminLandingCustomizer() {
   const [config, setConfig] = useState<LandingConfig>(defaultLandingConfig);
@@ -9,6 +10,7 @@ export default function AdminLandingCustomizer() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [showLivePreview, setShowLivePreview] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -55,6 +57,69 @@ export default function AdminLandingCustomizer() {
     const s = config.sections;
     return [s.showPulse, s.showVideoZone, s.showSpotlight, s.showReels, s.showAds].filter(Boolean).length;
   }, [config.sections]);
+
+  const unsavedPreviewFeed = useMemo(() => {
+    const highlights = config.feed.highlights
+      .filter((item) => item.isActive)
+      .map((item) => ({
+        id: item.id,
+        title: item.title || "Highlight",
+        league: item.league || "ECB Lightforce",
+        date: item.date || "",
+        time: item.time || "",
+        thumb: item.thumb || "",
+        video: item.video || ""
+      }));
+
+    const fixtures = config.feed.fixtures
+      .filter((item) => item.isActive)
+      .map((item) => ({
+        id: item.id,
+        event: item.event || "Fixture",
+        league: item.league || "Football",
+        date: item.date || "",
+        time: item.time || ""
+      }));
+
+    const manualVideoZone = config.feed.videoZone
+      .filter((item) => item.isActive)
+      .map((item) => ({
+        id: item.id,
+        title: item.title || "Video",
+        league: item.league || "ECB Lightforce",
+        date: "",
+        time: "",
+        thumb: item.thumb || "",
+        video: item.video || ""
+      }));
+
+    return {
+      source: "preview",
+      config,
+      highlights,
+      fixtures,
+      manualVideoZone
+    };
+  }, [config]);
+
+  function newId(prefix: string) {
+    return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  }
+
+  function toIso(value: string) {
+    if (!value) return "";
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? "" : d.toISOString();
+  }
+
+  function isoToLocalInput(value?: string) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    const offset = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+  }
 
   return (
     <section className="glass-panel overflow-hidden">
@@ -233,6 +298,464 @@ export default function AdminLandingCustomizer() {
             </div>
           </fieldset>
 
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-semibold text-white">Pulse And Video Zone Data</legend>
+            <Toggle
+              label="Use Manual Feed (override API highlights/fixtures/videos)"
+              checked={config.feed.useManualFeed}
+              onChange={(value) => setConfig((prev) => ({ ...prev, feed: { ...prev.feed, useManualFeed: value } }))}
+            />
+
+            <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-sm font-semibold text-white">Manual Highlights</p>
+                <button
+                  type="button"
+                  className="btn-muted"
+                  onClick={() =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      feed: {
+                        ...prev.feed,
+                        highlights: [
+                          ...prev.feed.highlights,
+                          {
+                            id: newId("hl"),
+                            title: "",
+                            league: "",
+                            date: "",
+                            time: "",
+                            thumb: "",
+                            video: "",
+                            isActive: true,
+                            publishAt: ""
+                          }
+                        ]
+                      }
+                    }))
+                  }
+                >
+                  Add Highlight
+                </button>
+              </div>
+              <div className="space-y-3">
+                {config.feed.highlights.map((item, idx) => (
+                  <div key={item.id} className="rounded-lg border border-white/10 bg-white/5 p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-xs text-white/70">Highlight {idx + 1}</p>
+                      <button
+                        type="button"
+                        className="text-xs text-red-300 underline"
+                        onClick={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: { ...prev.feed, highlights: prev.feed.highlights.filter((h) => h.id !== item.id) }
+                          }))
+                        }
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      <input
+                        className="input"
+                        placeholder="Title"
+                        value={item.title}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              highlights: prev.feed.highlights.map((h) => (h.id === item.id ? { ...h, title: e.target.value } : h))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        placeholder="League"
+                        value={item.league}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              highlights: prev.feed.highlights.map((h) => (h.id === item.id ? { ...h, league: e.target.value } : h))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        placeholder="Date (YYYY-MM-DD)"
+                        value={item.date}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              highlights: prev.feed.highlights.map((h) => (h.id === item.id ? { ...h, date: e.target.value } : h))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        placeholder="Time (HH:mm:ss)"
+                        value={item.time}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              highlights: prev.feed.highlights.map((h) => (h.id === item.id ? { ...h, time: e.target.value } : h))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input md:col-span-2"
+                        placeholder="Thumbnail URL"
+                        value={item.thumb}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              highlights: prev.feed.highlights.map((h) => (h.id === item.id ? { ...h, thumb: e.target.value } : h))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input md:col-span-2"
+                        placeholder="Video URL (optional)"
+                        value={item.video}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              highlights: prev.feed.highlights.map((h) => (h.id === item.id ? { ...h, video: e.target.value } : h))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        type="datetime-local"
+                        value={isoToLocalInput(item.publishAt)}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              highlights: prev.feed.highlights.map((h) =>
+                                h.id === item.id ? { ...h, publishAt: toIso(e.target.value) } : h
+                              )
+                            }
+                          }))
+                        }
+                      />
+                      <label className="inline-flex items-center gap-2 text-sm text-white/85">
+                        <input
+                          type="checkbox"
+                          checked={item.isActive}
+                          onChange={(e) =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              feed: {
+                                ...prev.feed,
+                                highlights: prev.feed.highlights.map((h) =>
+                                  h.id === item.id ? { ...h, isActive: e.target.checked } : h
+                                )
+                              }
+                            }))
+                          }
+                        />
+                        Active
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-sm font-semibold text-white">Manual Fixtures</p>
+                <button
+                  type="button"
+                  className="btn-muted"
+                  onClick={() =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      feed: {
+                        ...prev.feed,
+                        fixtures: [
+                          ...prev.feed.fixtures,
+                          { id: newId("fx"), event: "", league: "", date: "", time: "", isActive: true, publishAt: "" }
+                        ]
+                      }
+                    }))
+                  }
+                >
+                  Add Fixture
+                </button>
+              </div>
+              <div className="space-y-3">
+                {config.feed.fixtures.map((item, idx) => (
+                  <div key={item.id} className="rounded-lg border border-white/10 bg-white/5 p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-xs text-white/70">Fixture {idx + 1}</p>
+                      <button
+                        type="button"
+                        className="text-xs text-red-300 underline"
+                        onClick={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: { ...prev.feed, fixtures: prev.feed.fixtures.filter((f) => f.id !== item.id) }
+                          }))
+                        }
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      <input
+                        className="input md:col-span-2"
+                        placeholder="Match Event"
+                        value={item.event}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              fixtures: prev.feed.fixtures.map((f) => (f.id === item.id ? { ...f, event: e.target.value } : f))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        placeholder="League"
+                        value={item.league}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              fixtures: prev.feed.fixtures.map((f) => (f.id === item.id ? { ...f, league: e.target.value } : f))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        placeholder="Date (YYYY-MM-DD)"
+                        value={item.date}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              fixtures: prev.feed.fixtures.map((f) => (f.id === item.id ? { ...f, date: e.target.value } : f))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        placeholder="Time (HH:mm:ss)"
+                        value={item.time}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              fixtures: prev.feed.fixtures.map((f) => (f.id === item.id ? { ...f, time: e.target.value } : f))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        type="datetime-local"
+                        value={isoToLocalInput(item.publishAt)}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              fixtures: prev.feed.fixtures.map((f) =>
+                                f.id === item.id ? { ...f, publishAt: toIso(e.target.value) } : f
+                              )
+                            }
+                          }))
+                        }
+                      />
+                      <label className="inline-flex items-center gap-2 text-sm text-white/85">
+                        <input
+                          type="checkbox"
+                          checked={item.isActive}
+                          onChange={(e) =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              feed: {
+                                ...prev.feed,
+                                fixtures: prev.feed.fixtures.map((f) =>
+                                  f.id === item.id ? { ...f, isActive: e.target.checked } : f
+                                )
+                              }
+                            }))
+                          }
+                        />
+                        Active
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-sm font-semibold text-white">Manual Video Zone</p>
+                <button
+                  type="button"
+                  className="btn-muted"
+                  onClick={() =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      feed: {
+                        ...prev.feed,
+                        videoZone: [
+                          ...prev.feed.videoZone,
+                          { id: newId("vz"), title: "", league: "", video: "", thumb: "", isActive: true, publishAt: "" }
+                        ]
+                      }
+                    }))
+                  }
+                >
+                  Add Video
+                </button>
+              </div>
+              <div className="space-y-3">
+                {config.feed.videoZone.map((item, idx) => (
+                  <div key={item.id} className="rounded-lg border border-white/10 bg-white/5 p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-xs text-white/70">Video {idx + 1}</p>
+                      <button
+                        type="button"
+                        className="text-xs text-red-300 underline"
+                        onClick={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: { ...prev.feed, videoZone: prev.feed.videoZone.filter((v) => v.id !== item.id) }
+                          }))
+                        }
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      <input
+                        className="input"
+                        placeholder="Title"
+                        value={item.title}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              videoZone: prev.feed.videoZone.map((v) => (v.id === item.id ? { ...v, title: e.target.value } : v))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        placeholder="League"
+                        value={item.league}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              videoZone: prev.feed.videoZone.map((v) => (v.id === item.id ? { ...v, league: e.target.value } : v))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input md:col-span-2"
+                        placeholder="Video URL"
+                        value={item.video}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              videoZone: prev.feed.videoZone.map((v) => (v.id === item.id ? { ...v, video: e.target.value } : v))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input md:col-span-2"
+                        placeholder="Thumbnail URL (optional)"
+                        value={item.thumb || ""}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              videoZone: prev.feed.videoZone.map((v) => (v.id === item.id ? { ...v, thumb: e.target.value } : v))
+                            }
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        type="datetime-local"
+                        value={isoToLocalInput(item.publishAt)}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            feed: {
+                              ...prev.feed,
+                              videoZone: prev.feed.videoZone.map((v) =>
+                                v.id === item.id ? { ...v, publishAt: toIso(e.target.value) } : v
+                              )
+                            }
+                          }))
+                        }
+                      />
+                      <label className="inline-flex items-center gap-2 text-sm text-white/85">
+                        <input
+                          type="checkbox"
+                          checked={item.isActive}
+                          onChange={(e) =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              feed: {
+                                ...prev.feed,
+                                videoZone: prev.feed.videoZone.map((v) =>
+                                  v.id === item.id ? { ...v, isActive: e.target.checked } : v
+                                )
+                              }
+                            }))
+                          }
+                        />
+                        Active
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </fieldset>
+
           <div className="flex flex-wrap gap-2">
             <button className="btn-primary" disabled={loading || saving}>
               {saving ? "Saving..." : "Save Landing Settings"}
@@ -240,9 +763,9 @@ export default function AdminLandingCustomizer() {
             <button type="button" className="btn-muted" onClick={load} disabled={loading || saving}>
               {loading ? "Loading..." : "Reload"}
             </button>
-            <a href="/" target="_blank" rel="noreferrer" className="btn-muted">
-              Open Landing Preview
-            </a>
+            <button type="button" className="btn-muted" onClick={() => setShowLivePreview((v) => !v)}>
+              {showLivePreview ? "Hide Unsaved Preview" : "Preview Unsaved Landing"}
+            </button>
           </div>
 
           {error ? <p className="text-sm text-red-300">{error}</p> : null}
@@ -278,6 +801,15 @@ export default function AdminLandingCustomizer() {
           </div>
         </div>
       </div>
+
+      {showLivePreview ? (
+        <div className="border-t border-white/10 bg-black/25 p-4 md:p-6">
+          <p className="mb-3 text-xs uppercase tracking-[0.18em] text-pitch-200">Unsaved Live Preview</p>
+          <div className="max-h-[75vh] overflow-y-auto rounded-2xl border border-white/10">
+            <LandingSections previewData={unsavedPreviewFeed} previewMode />
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

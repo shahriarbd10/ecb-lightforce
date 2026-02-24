@@ -28,6 +28,38 @@ export type LandingConfig = {
     adsEyebrow: string;
     adsTitle: string;
   };
+  feed: {
+    useManualFeed: boolean;
+    highlights: {
+      id: string;
+      title: string;
+      league: string;
+      date: string;
+      time: string;
+      thumb: string;
+      video: string;
+      isActive: boolean;
+      publishAt?: string;
+    }[];
+    fixtures: {
+      id: string;
+      event: string;
+      league: string;
+      date: string;
+      time: string;
+      isActive: boolean;
+      publishAt?: string;
+    }[];
+    videoZone: {
+      id: string;
+      title: string;
+      league: string;
+      video: string;
+      thumb?: string;
+      isActive: boolean;
+      publishAt?: string;
+    }[];
+  };
 };
 
 export const defaultLandingConfig: LandingConfig = {
@@ -60,5 +92,11 @@ export const defaultLandingConfig: LandingConfig = {
     reelsTitle: "Short Clips Managed By Admin",
     adsEyebrow: "Club Ads & Media",
     adsTitle: "Admin Managed Promotions"
+  },
+  feed: {
+    useManualFeed: false,
+    highlights: [],
+    fixtures: [],
+    videoZone: []
   }
 };

@@ -74,6 +74,13 @@ function normalizeVideo(url?: string) {
   return url;
 }
 
+function isPublished(publishAt?: string) {
+  if (!publishAt) return true;
+  const ts = new Date(publishAt).getTime();
+  if (!Number.isFinite(ts)) return true;
+  return ts <= Date.now();
+}
+
 export async function GET() {
   const today = new Date().toISOString().slice(0, 10);
   const highlightsUrl = `https://www.thesportsdb.com/api/v1/json/123/eventshighlights.php?d=${today}&s=Soccer`;
@@ -118,18 +125,64 @@ export async function GET() {
     landingConfig = {
       hero: { ...defaultLandingConfig.hero, ...(configDoc?.hero || {}) },
       sections: { ...defaultLandingConfig.sections, ...(configDoc?.sections || {}) },
-      labels: { ...defaultLandingConfig.labels, ...(configDoc?.labels || {}) }
+      labels: { ...defaultLandingConfig.labels, ...(configDoc?.labels || {}) },
+      feed: {
+        ...defaultLandingConfig.feed,
+        ...(configDoc?.feed || {}),
+        highlights: Array.isArray(configDoc?.feed?.highlights) ? configDoc.feed.highlights : [],
+        fixtures: Array.isArray(configDoc?.feed?.fixtures) ? configDoc.feed.fixtures : [],
+        videoZone: Array.isArray(configDoc?.feed?.videoZone) ? configDoc.feed.videoZone : []
+      }
     };
   } catch {
     managedMedia = [];
     landingConfig = defaultLandingConfig;
   }
 
+  const manualHighlights = (landingConfig.feed?.highlights || [])
+    .filter((item: any) => item?.isActive !== false && isPublished(item?.publishAt))
+    .map((item: any, index: number) => ({
+      id: item.id || `mh-${index}`,
+      title: item.title || "Football Highlight",
+      league: item.league || "ECB Lightforce",
+      date: item.date || "",
+      time: item.time || "",
+      thumb: item.thumb || "",
+      video: normalizeVideo(item.video || "")
+    }));
+
+  const manualFixtures = (landingConfig.feed?.fixtures || [])
+    .filter((item: any) => item?.isActive !== false && isPublished(item?.publishAt))
+    .map((item: any, index: number) => ({
+      id: item.id || `mf-${index}`,
+      event: item.event || "Upcoming Match",
+      league: item.league || "Football",
+      date: item.date || "",
+      time: item.time || ""
+    }));
+
+  const manualVideoZone = (landingConfig.feed?.videoZone || [])
+    .filter((item: any) => item?.isActive !== false && isPublished(item?.publishAt))
+    .map((item: any, index: number) => ({
+      id: item.id || `mv-${index}`,
+      title: item.title || "Video Clip",
+      league: item.league || "ECB Lightforce",
+      date: "",
+      time: "",
+      thumb: item.thumb || "",
+      video: normalizeVideo(item.video || "")
+    }));
+
+  const finalHighlights = landingConfig.feed?.useManualFeed && manualHighlights.length ? manualHighlights : highlights;
+  const finalFixtures = landingConfig.feed?.useManualFeed && manualFixtures.length ? manualFixtures : fixtures;
+  const finalVideoZone = landingConfig.feed?.useManualFeed && manualVideoZone.length ? manualVideoZone : [];
+
   return NextResponse.json({
     updatedAt: new Date().toISOString(),
     source: highlightsSource.length ? "thesportsdb" : "fallback",
-    highlights,
-    fixtures,
+    highlights: finalHighlights,
+    fixtures: finalFixtures,
+    manualVideoZone: finalVideoZone,
     config: landingConfig,
     managedMedia: managedMedia.map((m: any) => ({
       id: String(m._id),

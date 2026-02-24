@@ -34,6 +34,7 @@ type LandingFeed = {
   source: string;
   highlights: HighlightItem[];
   fixtures: FixtureItem[];
+  manualVideoZone?: HighlightItem[];
   config?: LandingConfig;
   managedMedia?: {
     id: string;
@@ -65,12 +66,37 @@ const heroSlides = [
   }
 ];
 
-export default function LandingSections() {
-  const [feed, setFeed] = useState<LandingFeed | null>(null);
+type LandingSectionsProps = {
+  previewData?: Partial<LandingFeed> | null;
+  previewMode?: boolean;
+};
+
+export default function LandingSections({ previewData = null, previewMode = false }: LandingSectionsProps) {
+  const initialFeed = useMemo(
+    () =>
+      previewData
+        ? ({
+            updatedAt: new Date().toISOString(),
+            source: "preview",
+            highlights: [],
+            fixtures: [],
+            managedMedia: [],
+            manualVideoZone: [],
+            ...previewData
+          } as LandingFeed)
+        : null,
+    [previewData]
+  );
+
+  const [feed, setFeed] = useState<LandingFeed | null>(initialFeed);
   const [heroIndex, setHeroIndex] = useState(0);
-  const [isBootLoading, setIsBootLoading] = useState(true);
+  const [isBootLoading, setIsBootLoading] = useState(!previewMode);
 
   useEffect(() => {
+    if (previewMode) {
+      setFeed(initialFeed);
+      return;
+    }
     let mounted = true;
     async function load() {
       try {
@@ -85,9 +111,10 @@ export default function LandingSections() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [previewMode, initialFeed]);
 
   useEffect(() => {
+    if (previewMode) return;
     const onLoaded = () => setIsBootLoading(false);
     const timeout = setTimeout(() => setIsBootLoading(false), 1700);
 
@@ -102,9 +129,13 @@ export default function LandingSections() {
       clearTimeout(timeout);
       window.removeEventListener("load", onLoaded);
     };
-  }, []);
+  }, [previewMode]);
 
-  const topVideos = useMemo(() => (feed?.highlights || []).filter((v) => !!v.video).slice(0, 2), [feed]);
+  const topVideos = useMemo(() => {
+    const manual = (feed?.manualVideoZone || []).filter((v) => !!v.video);
+    if (manual.length) return manual.slice(0, 6);
+    return (feed?.highlights || []).filter((v) => !!v.video).slice(0, 2);
+  }, [feed]);
   const managedHero = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "hero").slice(0, 4), [feed]);
   const managedSpotlight = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "spotlight").slice(0, 4), [feed]);
   const managedReels = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "reels").slice(0, 6), [feed]);

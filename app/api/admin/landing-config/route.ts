@@ -36,6 +36,44 @@ const landingConfigSchema = z.object({
     reelsTitle: z.string().min(4).max(140),
     adsEyebrow: z.string().min(2).max(80),
     adsTitle: z.string().min(4).max(140)
+  }),
+  feed: z.object({
+    useManualFeed: z.boolean(),
+    highlights: z.array(
+      z.object({
+        id: z.string().min(1).max(80),
+        title: z.string().min(2).max(140),
+        league: z.string().min(2).max(120),
+        date: z.string().min(1).max(30),
+        time: z.string().min(1).max(30),
+        thumb: z.string().url().or(z.literal("")),
+        video: z.string().url().or(z.literal("")),
+        isActive: z.boolean(),
+        publishAt: z.string().datetime().optional().or(z.literal(""))
+      })
+    ).max(12),
+    fixtures: z.array(
+      z.object({
+        id: z.string().min(1).max(80),
+        event: z.string().min(2).max(140),
+        league: z.string().min(2).max(120),
+        date: z.string().min(1).max(30),
+        time: z.string().min(1).max(30),
+        isActive: z.boolean(),
+        publishAt: z.string().datetime().optional().or(z.literal(""))
+      })
+    ).max(20),
+    videoZone: z.array(
+      z.object({
+        id: z.string().min(1).max(80),
+        title: z.string().min(2).max(140),
+        league: z.string().min(2).max(120),
+        video: z.string().url(),
+        thumb: z.string().url().optional().or(z.literal("")),
+        isActive: z.boolean(),
+        publishAt: z.string().datetime().optional().or(z.literal(""))
+      })
+    ).max(12)
   })
 });
 
@@ -52,7 +90,14 @@ function mergeWithDefaults(config: any) {
   return {
     hero: { ...defaultLandingConfig.hero, ...(config?.hero || {}) },
     sections: { ...defaultLandingConfig.sections, ...(config?.sections || {}) },
-    labels: { ...defaultLandingConfig.labels, ...(config?.labels || {}) }
+    labels: { ...defaultLandingConfig.labels, ...(config?.labels || {}) },
+    feed: {
+      ...defaultLandingConfig.feed,
+      ...(config?.feed || {}),
+      highlights: Array.isArray(config?.feed?.highlights) ? config.feed.highlights : defaultLandingConfig.feed.highlights,
+      fixtures: Array.isArray(config?.feed?.fixtures) ? config.feed.fixtures : defaultLandingConfig.feed.fixtures,
+      videoZone: Array.isArray(config?.feed?.videoZone) ? config.feed.videoZone : defaultLandingConfig.feed.videoZone
+    }
   };
 }
 

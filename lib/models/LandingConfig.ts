@@ -32,6 +32,44 @@ const LandingConfigSchema = new Schema(
       reelsTitle: { type: String, default: defaultLandingConfig.labels.reelsTitle, trim: true },
       adsEyebrow: { type: String, default: defaultLandingConfig.labels.adsEyebrow, trim: true },
       adsTitle: { type: String, default: defaultLandingConfig.labels.adsTitle, trim: true }
+    },
+    feed: {
+      useManualFeed: { type: Boolean, default: defaultLandingConfig.feed.useManualFeed },
+      highlights: [
+        {
+          id: { type: String, default: "" },
+          title: { type: String, default: "", trim: true },
+          league: { type: String, default: "", trim: true },
+          date: { type: String, default: "", trim: true },
+          time: { type: String, default: "", trim: true },
+          thumb: { type: String, default: "", trim: true },
+          video: { type: String, default: "", trim: true },
+          isActive: { type: Boolean, default: true },
+          publishAt: { type: String, default: "", trim: true }
+        }
+      ],
+      fixtures: [
+        {
+          id: { type: String, default: "" },
+          event: { type: String, default: "", trim: true },
+          league: { type: String, default: "", trim: true },
+          date: { type: String, default: "", trim: true },
+          time: { type: String, default: "", trim: true },
+          isActive: { type: Boolean, default: true },
+          publishAt: { type: String, default: "", trim: true }
+        }
+      ],
+      videoZone: [
+        {
+          id: { type: String, default: "" },
+          title: { type: String, default: "", trim: true },
+          league: { type: String, default: "", trim: true },
+          video: { type: String, default: "", trim: true },
+          thumb: { type: String, default: "", trim: true },
+          isActive: { type: Boolean, default: true },
+          publishAt: { type: String, default: "", trim: true }
+        }
+      ]
     }
   },
   { timestamps: true }
