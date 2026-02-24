@@ -20,6 +20,7 @@ type SignResponse = {
 export default function PhotoUploader({ value, onChange, maxFiles = 6 }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const maxBytes = 10 * 1024 * 1024;
 
   async function uploadOne(file: File) {
@@ -53,11 +54,11 @@ export default function PhotoUploader({ value, onChange, maxFiles = 6 }: Props) 
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return;
 
-    const remaining = maxFiles - value.length;
-    const candidates = Array.from(files).slice(0, remaining);
+    const candidates = Array.from(files);
     const oversized = candidates.filter((f) => f.size > maxBytes);
     const selected = candidates.filter((f) => f.size <= maxBytes);
 
+    setInfo("");
     if (oversized.length) {
       setError(`Some files exceeded 10 MB and were skipped: ${oversized.map((f) => f.name).join(", ")}`);
     }
@@ -72,7 +73,13 @@ export default function PhotoUploader({ value, onChange, maxFiles = 6 }: Props) 
         const url = await uploadOne(file);
         if (url) urls.push(url);
       }
-      onChange([...value, ...urls]);
+      const merged = [...value, ...urls];
+      const overflow = Math.max(0, merged.length - maxFiles);
+      const finalUrls = overflow > 0 ? merged.slice(overflow) : merged;
+      if (overflow > 0) {
+        setInfo(`Limit reached (${maxFiles}). Replaced ${overflow} oldest photo${overflow > 1 ? "s" : ""}.`);
+      }
+      onChange(finalUrls);
     } catch (err: any) {
       setError(err?.message || "Upload failed.");
     } finally {
@@ -93,12 +100,13 @@ export default function PhotoUploader({ value, onChange, maxFiles = 6 }: Props) 
         accept="image/*"
         multiple
         onChange={(e) => handleFiles(e.target.files)}
-        disabled={uploading || value.length >= maxFiles}
+        disabled={uploading}
       />
       <p className="text-xs text-white/60">{uploading ? "Uploading..." : `${value.length}/${maxFiles} uploaded`}</p>
       <p className="text-xs text-white/55">
         Profile photo guide: use 1080x1080 px (square) or 1200x1600 px (portrait). Maximum file size: 10 MB.
       </p>
+      {info ? <p className="text-xs text-pitch-300">{info}</p> : null}
       {error ? <p className="text-xs text-red-300">{error}</p> : null}
 
       {value.length > 0 ? (

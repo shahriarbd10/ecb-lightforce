@@ -275,14 +275,15 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
               setForm((s) => {
                 const previousPhotos = s.photos || [];
                 const previousProfile = s.profilePhoto || "";
-                const isUpload = urls.length > previousPhotos.length;
+                const newUrls = urls.filter((u) => !previousPhotos.includes(u));
+                const isUpload = newUrls.length > 0;
 
                 if (isUpload) {
-                  const latestUploaded = urls[urls.length - 1] || "";
+                  const latestUploaded = newUrls[newUrls.length - 1] || "";
                   return {
                     ...s,
-                    photos: urls.filter((u) => u !== previousProfile),
-                    profilePhoto: latestUploaded || previousProfile
+                    photos: urls,
+                    profilePhoto: latestUploaded || (urls.includes(previousProfile) ? previousProfile : urls[0] || "")
                   };
                 }
 
