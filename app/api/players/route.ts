@@ -48,6 +48,7 @@ export async function GET(request: Request) {
         weightKg: p.weightKg,
         positions: p.positions || [],
         availableNow: p.availableNow,
+        profilePhoto: p.profilePhoto || (p.photos || [])[0] || "",
         photos: p.photos || [],
         headline: p.headline,
         stats: p.stats

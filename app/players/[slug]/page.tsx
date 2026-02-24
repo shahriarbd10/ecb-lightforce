@@ -15,6 +15,13 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
   return (
     <main className="container-page">
       <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        {(p.profilePhoto || (p.photos || [])[0]) ? (
+          <img
+            src={p.profilePhoto || p.photos[0]}
+            alt={`${p.user?.name || "Player"} profile`}
+            className="mb-4 h-40 w-40 rounded-2xl border border-white/15 object-cover"
+          />
+        ) : null}
         <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">{p.availableNow ? "Available Now" : "Not Available"}</p>
         <h1 className="mt-2 text-4xl font-bold text-white">{p.user?.name || "Player"}</h1>
         <p className="mt-2 text-white/80">{p.headline}</p>

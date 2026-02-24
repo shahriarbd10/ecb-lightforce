@@ -13,6 +13,7 @@ type HubPlayer = {
   weightKg: number;
   positions: string[];
   availableNow: boolean;
+  profilePhoto?: string;
   photos: string[];
   headline: string;
   stats?: {
@@ -124,9 +125,9 @@ export default function EcbHubPage() {
 
         {players.map((player) => (
           <article key={player.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            {player.photos?.[0] ? (
+            {player.profilePhoto || player.photos?.[0] ? (
               <img
-                src={player.photos[0]}
+                src={player.profilePhoto || player.photos[0]}
                 alt={`${player.name} profile`}
                 className="mb-3 h-40 w-full rounded-xl object-cover"
               />

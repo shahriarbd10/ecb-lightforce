@@ -29,6 +29,7 @@ export async function GET(_: Request, context: { params: Promise<{ slug: string 
       availableNow: (player as any).availableNow,
       availableTime: (player as any).availableTime,
       offDays: (player as any).offDays || [],
+      profilePhoto: (player as any).profilePhoto || ((player as any).photos || [])[0] || "",
       photos: (player as any).photos || [],
       stats: (player as any).stats || {},
       achievements: (player as any).achievements || [],

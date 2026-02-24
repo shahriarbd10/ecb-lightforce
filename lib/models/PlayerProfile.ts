@@ -42,6 +42,7 @@ const PlayerProfileSchema = new Schema(
     availableNow: { type: Boolean, default: false, index: true },
     offDays: [{ type: String, trim: true }],
     availableTime: { type: String, default: "", trim: true },
+    profilePhoto: { type: String, default: "" },
     photos: [{ type: String }],
     achievements: [AchievementSchema],
     timeline: [TimelineSchema]

@@ -12,6 +12,7 @@ const updateSchema = z.object({
   availableTime: z.string().max(120).optional(),
   offDays: z.array(z.string().max(20)).max(7).optional(),
   photos: z.array(z.string().url()).max(12).optional(),
+  profilePhoto: z.string().url().optional(),
   headline: z.string().max(120).optional(),
   location: z.string().max(120).optional(),
   positions: z.array(z.string().max(10)).max(6).optional(),

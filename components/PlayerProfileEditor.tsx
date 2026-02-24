@@ -11,6 +11,7 @@ type Profile = {
   availableNow?: boolean;
   availableTime?: string;
   offDays?: string[];
+  profilePhoto?: string;
   photos?: string[];
   headline?: string;
   location?: string;
@@ -39,6 +40,7 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
     availableNow: false,
     availableTime: "",
     offDays: [],
+    profilePhoto: "",
     photos: [],
     headline: "",
     location: "",
@@ -63,6 +65,7 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
         availableNow: !!data.availableNow,
         availableTime: data.availableTime || "",
         offDays: data.offDays || [],
+        profilePhoto: data.profilePhoto || (data.photos || [])[0] || "",
         photos: data.photos || [],
         headline: data.headline || "",
         location: data.location || "",
@@ -266,7 +269,49 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
         <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">Media</p>
         <h3 className="mt-1 text-xl font-semibold text-white">Photo Gallery</h3>
         <div className="mt-4">
-          <PhotoUploader value={form.photos || []} onChange={(urls) => setForm((s) => ({ ...s, photos: urls }))} maxFiles={10} />
+          <PhotoUploader
+            value={form.photos || []}
+            onChange={(urls) =>
+              setForm((s) => ({
+                ...s,
+                photos: urls,
+                profilePhoto: urls.includes(s.profilePhoto || "") ? s.profilePhoto : urls[0] || ""
+              }))
+            }
+            maxFiles={10}
+          />
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-[120px_1fr]">
+          <div>
+            <p className="text-xs uppercase tracking-[0.12em] text-white/60">Current Avatar</p>
+            {form.profilePhoto ? (
+              <img
+                src={form.profilePhoto}
+                alt="Primary profile"
+                className="mt-2 h-24 w-24 rounded-xl border border-white/15 object-cover"
+              />
+            ) : (
+              <div className="mt-2 flex h-24 w-24 items-center justify-center rounded-xl border border-white/15 text-xs text-white/50">
+                No photo
+              </div>
+            )}
+          </div>
+          <label className="space-y-1">
+            <span className="text-sm text-white/80">Primary Profile Photo</span>
+            <select
+              className="input"
+              value={form.profilePhoto || ""}
+              onChange={(e) => setForm((s) => ({ ...s, profilePhoto: e.target.value }))}
+              disabled={!form.photos?.length}
+            >
+              {!form.photos?.length ? <option value="">Upload photos first</option> : null}
+              {(form.photos || []).map((url, idx) => (
+                <option key={url} value={url}>
+                  Photo {idx + 1}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </section>
 
