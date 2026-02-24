@@ -12,7 +12,7 @@ const createSchema = z.object({
   mediaUrl: z.string().url(),
   thumbnailUrl: z.string().url().optional().or(z.literal("")),
   linkUrl: z.string().url().optional().or(z.literal("")),
-  placement: z.enum(["hero", "ads"]).default("ads"),
+  placement: z.enum(["hero", "ads", "spotlight", "reels"]).default("ads"),
   order: z.number().int().min(0).max(999).default(0),
   isActive: z.boolean().default(true)
 });

@@ -40,7 +40,7 @@ type LandingFeed = {
     mediaUrl: string;
     thumbnailUrl?: string;
     linkUrl?: string;
-    placement: "hero" | "ads";
+    placement: "hero" | "spotlight" | "reels" | "ads";
     order: number;
   }[];
 };
@@ -86,13 +86,6 @@ export default function LandingSections() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % heroSlides.length);
-    }, 3600);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
     const onLoaded = () => setIsBootLoading(false);
     const timeout = setTimeout(() => setIsBootLoading(false), 1700);
 
@@ -110,7 +103,25 @@ export default function LandingSections() {
   }, []);
 
   const topVideos = useMemo(() => (feed?.highlights || []).filter((v) => !!v.video).slice(0, 2), [feed]);
+  const managedHero = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "hero").slice(0, 4), [feed]);
+  const managedSpotlight = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "spotlight").slice(0, 4), [feed]);
+  const managedReels = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "reels").slice(0, 6), [feed]);
   const managedAds = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "ads").slice(0, 6), [feed]);
+  const heroDeck = useMemo(() => {
+    const fromAdmin = managedHero.map((item) => ({
+      image: item.type === "image" ? item.mediaUrl : item.thumbnailUrl || heroSlides[0].image,
+      badge: "Admin Hero Media",
+      text: item.title
+    }));
+    return (fromAdmin.length ? fromAdmin : heroSlides).slice(0, 6);
+  }, [managedHero]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % Math.max(heroDeck.length, 1));
+    }, 3600);
+    return () => clearInterval(timer);
+  }, [heroDeck.length]);
 
   return (
     <main className="relative overflow-hidden pb-20">
@@ -205,8 +216,8 @@ export default function LandingSections() {
           <div className="relative h-[380px] w-full overflow-hidden rounded-2xl md:h-[460px]">
             <AnimatePresence mode="wait">
               <motion.img
-                key={heroSlides[heroIndex].image}
-                src={heroSlides[heroIndex].image}
+                key={heroDeck[heroIndex % heroDeck.length].image}
+                src={heroDeck[heroIndex % heroDeck.length].image}
                 alt="Football players in action"
                 initial={{ opacity: 0, scale: 1.06 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -217,11 +228,11 @@ export default function LandingSections() {
             </AnimatePresence>
           </div>
           <div className="glass-soft absolute bottom-6 left-6 max-w-xs p-4">
-            <p className="text-sm uppercase tracking-[0.16em] text-pitch-200">{heroSlides[heroIndex].badge}</p>
-            <p className="mt-1 text-lg font-semibold text-white">{heroSlides[heroIndex].text}</p>
+            <p className="text-sm uppercase tracking-[0.16em] text-pitch-200">{heroDeck[heroIndex % heroDeck.length].badge}</p>
+            <p className="mt-1 text-lg font-semibold text-white">{heroDeck[heroIndex % heroDeck.length].text}</p>
           </div>
           <div className="absolute bottom-7 right-8 flex gap-2">
-            {heroSlides.map((_, idx) => (
+            {heroDeck.map((_, idx) => (
               <button
                 key={`dot-${idx}`}
                 type="button"
@@ -410,6 +421,55 @@ export default function LandingSections() {
 
       <section className="relative mx-auto mt-12 max-w-6xl px-4">
         <div className="mb-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Spotlight Section</p>
+          <h3 className="mt-2 text-3xl font-bold text-white">Admin Curated Campaign Media</h3>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {managedSpotlight.length === 0 ? (
+            <div className="glass-panel col-span-full p-5 text-sm text-white/70">
+              No spotlight media published yet.
+            </div>
+          ) : (
+            managedSpotlight.map((item) => (
+              <article key={item.id} className="glass-panel overflow-hidden p-0">
+                <ManagedMediaPreview item={item} className="h-60 w-full md:h-72" />
+                <div className="p-4">
+                  <p className="text-base font-semibold text-white">{item.title}</p>
+                  {item.linkUrl ? (
+                    <a href={item.linkUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-pitch-200 underline">
+                      Open Link
+                    </a>
+                  ) : null}
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+
+      <section className="relative mx-auto mt-12 max-w-6xl px-4">
+        <div className="mb-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Reels Wall</p>
+          <h3 className="mt-2 text-3xl font-bold text-white">Short Clips Managed By Admin</h3>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {managedReels.length === 0 ? (
+            <div className="glass-panel col-span-full p-5 text-sm text-white/70">No reels published yet.</div>
+          ) : (
+            managedReels.map((item) => (
+              <article key={item.id} className="glass-panel overflow-hidden p-0">
+                <ManagedMediaPreview item={item} className="h-52 w-full" />
+                <div className="p-4">
+                  <p className="text-sm font-semibold text-white">{item.title}</p>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+
+      <section className="relative mx-auto mt-12 max-w-6xl px-4">
+        <div className="mb-6">
           <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Club Ads & Media</p>
           <h3 className="mt-2 text-3xl font-bold text-white">Admin Managed Promotions</h3>
         </div>
@@ -419,17 +479,7 @@ export default function LandingSections() {
           ) : (
             managedAds.map((item) => (
               <article key={item.id} className="glass-panel overflow-hidden p-0">
-                {item.type === "image" ? (
-                  <img src={item.mediaUrl} alt={item.title} className="h-48 w-full object-cover" />
-                ) : (
-                  <iframe
-                    src={toEmbedUrl(item.mediaUrl)}
-                    className="h-48 w-full"
-                    title={item.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                )}
+                <ManagedMediaPreview item={item} className="h-48 w-full" />
                 <div className="p-4">
                   <p className="text-sm font-semibold text-white">{item.title}</p>
                   {item.linkUrl ? (
@@ -585,7 +635,41 @@ function FootballIcon({ size = 14, className = "text-pitch-300" }: { size?: numb
   );
 }
 
+function ManagedMediaPreview({
+  item,
+  className
+}: {
+  item: {
+    title: string;
+    type: "image" | "video";
+    mediaUrl: string;
+  };
+  className: string;
+}) {
+  if (item.type === "image") {
+    return <img src={item.mediaUrl} alt={item.title} className={`${className} object-cover`} />;
+  }
+
+  if (isVideoFile(item.mediaUrl)) {
+    return <video src={item.mediaUrl} className={`${className} object-cover`} controls playsInline />;
+  }
+
+  return (
+    <iframe
+      src={toEmbedUrl(item.mediaUrl)}
+      className={className}
+      title={item.title}
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+    />
+  );
+}
+
+function isVideoFile(url: string) {
+  return /\.(mp4|webm|ogg)(\?|$)/i.test(url);
+}
+
 function formatDate(date?: string, time?: string) {
   if (!date) return "Date not announced";
-  return `${date}${time ? ` • ${time.slice(0, 5)}` : ""}`;
+  return `${date}${time ? ` | ${time.slice(0, 5)}` : ""}`;
 }

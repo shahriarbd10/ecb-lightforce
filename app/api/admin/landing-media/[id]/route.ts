@@ -12,7 +12,7 @@ const updateSchema = z.object({
   mediaUrl: z.string().url().optional(),
   thumbnailUrl: z.string().url().optional().or(z.literal("")),
   linkUrl: z.string().url().optional().or(z.literal("")),
-  placement: z.enum(["hero", "ads"]).optional(),
+  placement: z.enum(["hero", "ads", "spotlight", "reels"]).optional(),
   order: z.number().int().min(0).max(999).optional(),
   isActive: z.boolean().optional()
 });

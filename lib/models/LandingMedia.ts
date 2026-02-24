@@ -7,7 +7,7 @@ const LandingMediaSchema = new Schema(
     mediaUrl: { type: String, required: true, trim: true },
     thumbnailUrl: { type: String, default: "", trim: true },
     linkUrl: { type: String, default: "", trim: true },
-    placement: { type: String, enum: ["hero", "ads"], default: "ads" },
+    placement: { type: String, enum: ["hero", "ads", "spotlight", "reels"], default: "ads" },
     order: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true }
   },

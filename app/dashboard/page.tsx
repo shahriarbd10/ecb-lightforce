@@ -40,8 +40,8 @@ export default async function DashboardPage() {
             <section className="glass-panel p-5 md:p-6">
               <h2 className="text-2xl font-semibold">Landing Page Content Manager</h2>
               <p className="mt-2 text-white/75">
-                Publish and control hero/ads media blocks for the landing page. Supports image and video links
-                (YouTube, Vimeo, Facebook public video URLs).
+                Publish and control hero, spotlight, reels, and ads sections for the landing page. Supports direct
+                uploads plus image/video links (YouTube, Vimeo, Facebook public video URLs).
               </p>
             </section>
             <AdminMediaManager />
