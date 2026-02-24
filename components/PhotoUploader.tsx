@@ -20,6 +20,7 @@ type SignResponse = {
 export default function PhotoUploader({ value, onChange, maxFiles = 6 }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const maxBytes = 10 * 1024 * 1024;
 
   async function uploadOne(file: File) {
     const signRes = await fetch("/api/uploads/sign", {
@@ -53,11 +54,17 @@ export default function PhotoUploader({ value, onChange, maxFiles = 6 }: Props) 
     if (!files?.length) return;
 
     const remaining = maxFiles - value.length;
-    const selected = Array.from(files).slice(0, remaining);
+    const candidates = Array.from(files).slice(0, remaining);
+    const oversized = candidates.filter((f) => f.size > maxBytes);
+    const selected = candidates.filter((f) => f.size <= maxBytes);
+
+    if (oversized.length) {
+      setError(`Some files exceeded 10 MB and were skipped: ${oversized.map((f) => f.name).join(", ")}`);
+    }
     if (!selected.length) return;
 
     setUploading(true);
-    setError("");
+    if (!oversized.length) setError("");
 
     try {
       const urls: string[] = [];
@@ -89,6 +96,9 @@ export default function PhotoUploader({ value, onChange, maxFiles = 6 }: Props) 
         disabled={uploading || value.length >= maxFiles}
       />
       <p className="text-xs text-white/60">{uploading ? "Uploading..." : `${value.length}/${maxFiles} uploaded`}</p>
+      <p className="text-xs text-white/55">
+        Profile photo guide: use 1080x1080 px (square) or 1200x1600 px (portrait). Maximum file size: 10 MB.
+      </p>
       {error ? <p className="text-xs text-red-300">{error}</p> : null}
 
       {value.length > 0 ? (
