@@ -9,8 +9,8 @@ export async function GET(_: Request, context: { params: Promise<{ slug: string 
     const { slug } = await context.params;
     await connectToDatabase();
 
-    const player = await PlayerProfile.findOne({ slug }).populate("user", "name").lean();
-    if (!player) {
+    const player = await PlayerProfile.findOne({ slug }).populate("user", "name role").lean();
+    if (!player || (player as any).user?.role !== "player") {
       return NextResponse.json({ message: "Player not found." }, { status: 404 });
     }
 

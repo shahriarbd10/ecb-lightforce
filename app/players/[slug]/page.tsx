@@ -7,8 +7,8 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
   const { slug } = await params;
   await connectToDatabase();
 
-  const player = await PlayerProfile.findOne({ slug }).populate("user", "name").lean();
-  if (!player) return notFound();
+  const player = await PlayerProfile.findOne({ slug }).populate("user", "name role").lean();
+  if (!player || (player as any).user?.role !== "player") return notFound();
 
   const p: any = player;
 

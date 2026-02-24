@@ -32,27 +32,29 @@ export async function GET(request: Request) {
 
     await connectToDatabase();
     const players = await PlayerProfile.find(filter)
-      .populate("user", "name")
+      .populate("user", "name role")
       .sort({ availableNow: -1, updatedAt: -1 })
       .limit(120)
       .lean();
 
     return NextResponse.json(
-      players.map((p: any) => ({
-        id: String(p._id),
-        slug: p.slug,
-        name: p.user?.name || "Player",
-        location: p.location,
-        age: p.age,
-        heightCm: p.heightCm,
-        weightKg: p.weightKg,
-        positions: p.positions || [],
-        availableNow: p.availableNow,
-        profilePhoto: p.profilePhoto || (p.photos || [])[0] || "",
-        photos: p.photos || [],
-        headline: p.headline,
-        stats: p.stats
-      }))
+      players
+        .filter((p: any) => p.user?.role === "player")
+        .map((p: any) => ({
+          id: String(p._id),
+          slug: p.slug,
+          name: p.user?.name || "Player",
+          location: p.location,
+          age: p.age,
+          heightCm: p.heightCm,
+          weightKg: p.weightKg,
+          positions: p.positions || [],
+          availableNow: p.availableNow,
+          profilePhoto: p.profilePhoto || (p.photos || [])[0] || "",
+          photos: p.photos || [],
+          headline: p.headline,
+          stats: p.stats
+        }))
     );
   } catch (error: any) {
     return dbAwareErrorResponse("Could not fetch players.", error);
