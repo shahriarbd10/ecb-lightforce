@@ -272,11 +272,27 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
           <PhotoUploader
             value={form.photos || []}
             onChange={(urls) =>
-              setForm((s) => ({
-                ...s,
-                photos: urls,
-                profilePhoto: urls.includes(s.profilePhoto || "") ? s.profilePhoto : urls[0] || ""
-              }))
+              setForm((s) => {
+                const previousPhotos = s.photos || [];
+                const previousProfile = s.profilePhoto || "";
+                const isUpload = urls.length > previousPhotos.length;
+
+                if (isUpload) {
+                  const latestUploaded = urls[urls.length - 1] || "";
+                  return {
+                    ...s,
+                    photos: urls.filter((u) => u !== previousProfile),
+                    profilePhoto: latestUploaded || previousProfile
+                  };
+                }
+
+                const nextProfile = urls.includes(previousProfile) ? previousProfile : urls[0] || "";
+                return {
+                  ...s,
+                  photos: urls,
+                  profilePhoto: nextProfile
+                };
+              })
             }
             maxFiles={10}
           />
