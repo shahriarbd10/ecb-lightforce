@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { defaultLandingConfig, type LandingConfig } from "@/lib/landing-config";
 import { toEmbedUrl } from "@/lib/media-embed";
 
 const reveal = {
@@ -33,6 +34,7 @@ type LandingFeed = {
   source: string;
   highlights: HighlightItem[];
   fixtures: FixtureItem[];
+  config?: LandingConfig;
   managedMedia?: {
     id: string;
     title: string;
@@ -115,6 +117,14 @@ export default function LandingSections() {
     }));
     return (fromAdmin.length ? fromAdmin : heroSlides).slice(0, 6);
   }, [managedHero]);
+  const content = useMemo(
+    () => ({
+      hero: { ...defaultLandingConfig.hero, ...(feed?.config?.hero || {}) },
+      sections: { ...defaultLandingConfig.sections, ...(feed?.config?.sections || {}) },
+      labels: { ...defaultLandingConfig.labels, ...(feed?.config?.labels || {}) }
+    }),
+    [feed?.config]
+  );
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -157,7 +167,7 @@ export default function LandingSections() {
             className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs uppercase tracking-[0.18em] text-pitch-100"
           >
             <FootballIcon />
-            Football + Futsal Club Since 2025
+            {content.hero.badge}
           </motion.p>
           <motion.h1
             initial="hidden"
@@ -166,8 +176,8 @@ export default function LandingSections() {
             transition={{ duration: 0.55, delay: 0.06 }}
             className="max-w-3xl text-4xl font-extrabold leading-tight text-white md:text-6xl"
           >
-            Build Your Player Identity.
-            <span className="block text-pitch-300">Get Seen Through ECB Lightforce.</span>
+            {content.hero.titleLine1}
+            <span className="block text-pitch-300">{content.hero.titleLine2}</span>
           </motion.h1>
           <motion.p
             initial="hidden"
@@ -176,8 +186,7 @@ export default function LandingSections() {
             transition={{ duration: 0.55, delay: 0.12 }}
             className="mt-5 max-w-2xl text-base text-white/80 md:text-lg"
           >
-            A modern talent ecosystem for local, school, college, university, and club players in Bangladesh. Create
-            your profile, publish achievements, show match availability, and unlock exposure.
+            {content.hero.description}
           </motion.p>
           <motion.div
             initial="hidden"
@@ -186,11 +195,11 @@ export default function LandingSections() {
             transition={{ duration: 0.55, delay: 0.18 }}
             className="mt-8 flex flex-wrap gap-3"
           >
-            <Link href="/register" className="rounded-full bg-pitch-400 px-7 py-3 font-semibold text-black">
-              Join As Player
+            <Link href={content.hero.primaryCtaHref || "/register"} className="rounded-full bg-pitch-400 px-7 py-3 font-semibold text-black">
+              {content.hero.primaryCtaLabel}
             </Link>
-            <Link href="/ecb-hub" className="rounded-full border border-white/25 bg-white/10 px-7 py-3 text-white">
-              Browse ECB Hub
+            <Link href={content.hero.secondaryCtaHref || "/ecb-hub"} className="rounded-full border border-white/25 bg-white/10 px-7 py-3 text-white">
+              {content.hero.secondaryCtaLabel}
             </Link>
           </motion.div>
           <div className="mt-8 grid max-w-xl grid-cols-3 gap-3">
@@ -340,11 +349,12 @@ export default function LandingSections() {
         </div>
       </section>
 
+      {content.sections.showPulse ? (
       <section className="relative mx-auto mt-12 max-w-6xl px-4">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-2">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Latest Football Pulse</p>
-            <h3 className="mt-2 text-3xl font-bold text-white">Live Highlights, Fixtures, And Match Context</h3>
+            <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.pulseEyebrow}</p>
+            <h3 className="mt-2 text-3xl font-bold text-white">{content.labels.pulseTitle}</h3>
           </div>
           <p className="text-xs text-white/60">
             Source: {feed?.source === "thesportsdb" ? "TheSportsDB (free API)" : "Local fallback feed"}
@@ -383,11 +393,13 @@ export default function LandingSections() {
           </div>
         </div>
       </section>
+      ) : null}
 
+      {content.sections.showVideoZone ? (
       <section className="relative mx-auto mt-12 max-w-6xl px-4">
         <div className="mb-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Video Zone</p>
-          <h3 className="mt-2 text-3xl font-bold text-white">Match Highlights And Breakdown Clips</h3>
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.videoEyebrow}</p>
+          <h3 className="mt-2 text-3xl font-bold text-white">{content.labels.videoTitle}</h3>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {topVideos.length ? (
@@ -418,11 +430,13 @@ export default function LandingSections() {
           )}
         </div>
       </section>
+      ) : null}
 
+      {content.sections.showSpotlight ? (
       <section className="relative mx-auto mt-12 max-w-6xl px-4">
         <div className="mb-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Spotlight Section</p>
-          <h3 className="mt-2 text-3xl font-bold text-white">Admin Curated Campaign Media</h3>
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.spotlightEyebrow}</p>
+          <h3 className="mt-2 text-3xl font-bold text-white">{content.labels.spotlightTitle}</h3>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {managedSpotlight.length === 0 ? (
@@ -446,11 +460,13 @@ export default function LandingSections() {
           )}
         </div>
       </section>
+      ) : null}
 
+      {content.sections.showReels ? (
       <section className="relative mx-auto mt-12 max-w-6xl px-4">
         <div className="mb-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Reels Wall</p>
-          <h3 className="mt-2 text-3xl font-bold text-white">Short Clips Managed By Admin</h3>
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.reelsEyebrow}</p>
+          <h3 className="mt-2 text-3xl font-bold text-white">{content.labels.reelsTitle}</h3>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {managedReels.length === 0 ? (
@@ -477,11 +493,13 @@ export default function LandingSections() {
           )}
         </div>
       </section>
+      ) : null}
 
+      {content.sections.showAds ? (
       <section className="relative mx-auto mt-12 max-w-6xl px-4">
         <div className="mb-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Club Ads & Media</p>
-          <h3 className="mt-2 text-3xl font-bold text-white">Admin Managed Promotions</h3>
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.adsEyebrow}</p>
+          <h3 className="mt-2 text-3xl font-bold text-white">{content.labels.adsTitle}</h3>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {managedAds.length === 0 ? (
@@ -503,6 +521,7 @@ export default function LandingSections() {
           )}
         </div>
       </section>
+      ) : null}
 
       <section className="relative mx-auto mt-12 max-w-6xl px-4">
         <div className="glass-panel p-5 md:p-7">

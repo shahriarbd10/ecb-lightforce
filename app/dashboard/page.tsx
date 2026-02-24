@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import PlayerProfileEditor from "@/components/PlayerProfileEditor";
 import AdminMediaManager from "@/components/AdminMediaManager";
+import AdminLandingCustomizer from "@/components/AdminLandingCustomizer";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -37,6 +38,7 @@ export default async function DashboardPage() {
       <div className="mt-6">
         {isAdmin ? (
           <>
+            <AdminLandingCustomizer />
             <section className="glass-panel p-5 md:p-6">
               <h2 className="text-2xl font-semibold">Landing Page Content Manager</h2>
               <p className="mt-2 text-white/75">

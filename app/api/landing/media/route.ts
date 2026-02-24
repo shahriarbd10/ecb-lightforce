@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
+import { defaultLandingConfig } from "@/lib/landing-config";
+import LandingConfig from "@/lib/models/LandingConfig";
 import LandingMedia from "@/lib/models/LandingMedia";
 
 type ApiEvent = {
@@ -108,11 +110,19 @@ export async function GET() {
   }));
 
   let managedMedia: any[] = [];
+  let landingConfig: any = defaultLandingConfig;
   try {
     await connectToDatabase();
+    const configDoc = await LandingConfig.findOne({ key: "main" }).lean();
     managedMedia = await LandingMedia.find({ isActive: true }).sort({ order: 1, updatedAt: -1 }).limit(12).lean();
+    landingConfig = {
+      hero: { ...defaultLandingConfig.hero, ...(configDoc?.hero || {}) },
+      sections: { ...defaultLandingConfig.sections, ...(configDoc?.sections || {}) },
+      labels: { ...defaultLandingConfig.labels, ...(configDoc?.labels || {}) }
+    };
   } catch {
     managedMedia = [];
+    landingConfig = defaultLandingConfig;
   }
 
   return NextResponse.json({
@@ -120,6 +130,7 @@ export async function GET() {
     source: highlightsSource.length ? "thesportsdb" : "fallback",
     highlights,
     fixtures,
+    config: landingConfig,
     managedMedia: managedMedia.map((m: any) => ({
       id: String(m._id),
       title: m.title,
