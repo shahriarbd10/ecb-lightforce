@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import PlayerProfileEditor from "@/components/PlayerProfileEditor";
 import AdminMediaManager from "@/components/AdminMediaManager";
 import AdminLandingCustomizer from "@/components/AdminLandingCustomizer";
+import AdminPlayerManager from "@/components/AdminPlayerManager";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -47,6 +48,7 @@ export default async function DashboardPage() {
               </p>
             </section>
             <AdminMediaManager />
+            <AdminPlayerManager />
           </>
         ) : (
           <PlayerProfileEditor userName={session.user.name || "Player"} role={session.user.role} />

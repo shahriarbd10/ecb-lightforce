@@ -35,6 +35,11 @@ export default function EcbHubPage() {
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareSearch, setCompareSearch] = useState("");
+  const [comparePosition, setComparePosition] = useState("");
+  const [compareMinAge, setCompareMinAge] = useState("");
+  const [compareMaxAge, setCompareMaxAge] = useState("");
 
   const query = useMemo(() => {
     const p = new URLSearchParams();
@@ -82,11 +87,7 @@ export default function EcbHubPage() {
   }, [query]);
 
   useEffect(() => {
-    setSelectedPlayerIds((prev) => {
-      const existing = prev.filter((id) => players.some((p) => p.id === id));
-      if (existing.length) return existing.slice(0, 4);
-      return players.slice(0, 4).map((p) => p.id);
-    });
+    setSelectedPlayerIds((prev) => prev.filter((id) => players.some((p) => p.id === id)).slice(0, 4));
   }, [players]);
 
   const selectedPlayers = useMemo(() => {
@@ -117,6 +118,22 @@ export default function EcbHubPage() {
     });
     return Array.from(freq.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
   }, [selectedPlayers]);
+
+  const compareCandidates = useMemo(() => {
+    return players.filter((player) => {
+      if (comparePosition && !player.positions.some((p) => p.toLowerCase() === comparePosition.toLowerCase())) {
+        return false;
+      }
+      if (compareSearch) {
+        const q = compareSearch.toLowerCase();
+        const hay = `${player.name} ${player.location} ${player.headline} ${(player.positions || []).join(" ")}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (compareMinAge && player.age < Number(compareMinAge)) return false;
+      if (compareMaxAge && player.age > Number(compareMaxAge)) return false;
+      return true;
+    });
+  }, [players, comparePosition, compareSearch, compareMinAge, compareMaxAge]);
 
   function toggleSelection(id: string) {
     setSelectedPlayerIds((prev) => {
@@ -172,9 +189,74 @@ export default function EcbHubPage() {
             <input type="checkbox" checked={availableNow} onChange={(e) => setAvailableNow(e.target.checked)} />
             Show available now only
           </label>
-          <p className="text-xs text-white/60">{players.length} profiles visible</p>
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-white/60">{players.length} profiles visible</p>
+            <button type="button" className="btn-primary" onClick={() => setCompareOpen((v) => !v)}>
+              {compareOpen ? "Close Compare" : "Compare Players"}
+            </button>
+          </div>
         </div>
       </section>
+
+      {compareOpen ? (
+        <section className="glass-panel mt-6 p-5 md:p-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Compare Selector</p>
+          <h2 className="mt-2 text-2xl font-bold text-white">Select Players For Comparison</h2>
+          <p className="mt-2 text-sm text-white/70">Use filters below and pick up to 4 players.</p>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-5">
+            <input
+              className="input md:col-span-2"
+              placeholder="Search name, position, location"
+              value={compareSearch}
+              onChange={(e) => setCompareSearch(e.target.value)}
+            />
+            <input
+              className="input"
+              placeholder="Position"
+              value={comparePosition}
+              onChange={(e) => setComparePosition(e.target.value)}
+            />
+            <input
+              className="input"
+              type="number"
+              placeholder="Min age"
+              value={compareMinAge}
+              onChange={(e) => setCompareMinAge(e.target.value)}
+            />
+            <input
+              className="input"
+              type="number"
+              placeholder="Max age"
+              value={compareMaxAge}
+              onChange={(e) => setCompareMaxAge(e.target.value)}
+            />
+          </div>
+
+          <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {compareCandidates.slice(0, 30).map((player) => {
+              const selected = selectedPlayerIds.includes(player.id);
+              const disableAdd = !selected && selectedPlayerIds.length >= 4;
+              return (
+                <label
+                  key={`pick-${player.id}`}
+                  className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 ${selected ? "border-pitch-300/60 bg-pitch-300/10" : "border-white/10 bg-white/5"}`}
+                >
+                  <span className="text-sm text-white">
+                    {player.name} <span className="text-white/60">({player.age})</span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    disabled={disableAdd}
+                    onChange={() => toggleSelection(player.id)}
+                  />
+                </label>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {loading ? <p className="text-white/70">Loading player profiles...</p> : null}
@@ -230,18 +312,9 @@ export default function EcbHubPage() {
 
               <div className="mt-4 flex items-center justify-between">
                 <p className="text-xs text-white/60">{player.heightCm} cm | {player.weightKg} kg</p>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => toggleSelection(player.id)}
-                    className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] uppercase tracking-[0.12em] text-white/85"
-                  >
-                    {selectedPlayerIds.includes(player.id) ? "Selected" : "Compare"}
-                  </button>
-                  <Link href={`/players/${player.slug}`} className="text-sm font-medium text-pitch-200 underline underline-offset-4">
-                    View profile
-                  </Link>
-                </div>
+                <Link href={`/players/${player.slug}`} className="text-sm font-medium text-pitch-200 underline underline-offset-4">
+                  View profile
+                </Link>
               </div>
             </div>
           </motion.article>
