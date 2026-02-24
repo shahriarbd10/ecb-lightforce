@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { connectToDatabase } from "@/lib/db";
+import LandingMedia from "@/lib/models/LandingMedia";
 
 type ApiEvent = {
   idEvent?: string;
@@ -105,10 +107,28 @@ export async function GET() {
     time: item.strTime || item.time || ""
   }));
 
+  let managedMedia: any[] = [];
+  try {
+    await connectToDatabase();
+    managedMedia = await LandingMedia.find({ isActive: true }).sort({ order: 1, updatedAt: -1 }).limit(12).lean();
+  } catch {
+    managedMedia = [];
+  }
+
   return NextResponse.json({
     updatedAt: new Date().toISOString(),
     source: highlightsSource.length ? "thesportsdb" : "fallback",
     highlights,
-    fixtures
+    fixtures,
+    managedMedia: managedMedia.map((m: any) => ({
+      id: String(m._id),
+      title: m.title,
+      type: m.type,
+      mediaUrl: m.mediaUrl,
+      thumbnailUrl: m.thumbnailUrl || "",
+      linkUrl: m.linkUrl || "",
+      placement: m.placement,
+      order: m.order
+    }))
   });
 }

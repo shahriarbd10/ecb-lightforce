@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { toEmbedUrl } from "@/lib/media-embed";
 
 const reveal = {
   hidden: { opacity: 0, y: 24 },
@@ -32,6 +33,16 @@ type LandingFeed = {
   source: string;
   highlights: HighlightItem[];
   fixtures: FixtureItem[];
+  managedMedia?: {
+    id: string;
+    title: string;
+    type: "image" | "video";
+    mediaUrl: string;
+    thumbnailUrl?: string;
+    linkUrl?: string;
+    placement: "hero" | "ads";
+    order: number;
+  }[];
 };
 
 const heroSlides = [
@@ -99,6 +110,7 @@ export default function LandingSections() {
   }, []);
 
   const topVideos = useMemo(() => (feed?.highlights || []).filter((v) => !!v.video).slice(0, 2), [feed]);
+  const managedAds = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "ads").slice(0, 6), [feed]);
 
   return (
     <main className="relative overflow-hidden pb-20">
@@ -392,6 +404,42 @@ export default function LandingSections() {
                 Keep scrolling to explore profiles and platform capabilities.
               </div>
             </>
+          )}
+        </div>
+      </section>
+
+      <section className="relative mx-auto mt-12 max-w-6xl px-4">
+        <div className="mb-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Club Ads & Media</p>
+          <h3 className="mt-2 text-3xl font-bold text-white">Admin Managed Promotions</h3>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {managedAds.length === 0 ? (
+            <div className="glass-panel col-span-full p-5 text-sm text-white/70">No admin media published yet.</div>
+          ) : (
+            managedAds.map((item) => (
+              <article key={item.id} className="glass-panel overflow-hidden p-0">
+                {item.type === "image" ? (
+                  <img src={item.mediaUrl} alt={item.title} className="h-48 w-full object-cover" />
+                ) : (
+                  <iframe
+                    src={toEmbedUrl(item.mediaUrl)}
+                    className="h-48 w-full"
+                    title={item.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                )}
+                <div className="p-4">
+                  <p className="text-sm font-semibold text-white">{item.title}</p>
+                  {item.linkUrl ? (
+                    <a href={item.linkUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-pitch-200 underline">
+                      Open Link
+                    </a>
+                  ) : null}
+                </div>
+              </article>
+            ))
           )}
         </div>
       </section>

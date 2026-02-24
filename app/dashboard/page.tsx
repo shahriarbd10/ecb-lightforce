@@ -24,6 +24,11 @@ export default async function DashboardPage() {
           <Link href="/register" className="btn-muted">
             Register New Player
           </Link>
+          {session.user.role === "admin" ? (
+            <Link href="/admin/media" className="btn-muted">
+              Admin Media
+            </Link>
+          ) : null}
         </div>
       </section>
 
