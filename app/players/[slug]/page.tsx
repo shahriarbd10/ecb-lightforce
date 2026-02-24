@@ -64,14 +64,24 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
         {(p.achievements || []).length === 0 ? (
           <p className="mt-2 text-white/70">No achievements added yet.</p>
         ) : (
-          <ul className="mt-3 space-y-3">
-            {(p.achievements || []).map((a: any, idx: number) => (
-              <li key={`${a.title}-${idx}`} className="rounded-xl border border-white/10 p-3">
-                <p className="font-medium text-white">{a.title}</p>
-                <p className="text-sm text-white/75">{a.details}</p>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {[...(p.achievements || [])]
+              .sort((a: any, b: any) => {
+                const at = a?.date ? new Date(a.date).getTime() : 0;
+                const bt = b?.date ? new Date(b.date).getTime() : 0;
+                return bt - at;
+              })
+              .map((a: any, idx: number) => (
+                <article key={`${a.title}-${idx}`} className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                  {a.image ? <img src={a.image} alt={a.title} className="h-40 w-full object-cover" /> : null}
+                  <div className="p-3">
+                    <p className="font-medium text-white">{a.title}</p>
+                    {a.date ? <p className="mt-1 text-xs text-pitch-200">{formatDate(a.date)}</p> : null}
+                    <p className="mt-2 text-sm text-white/75">{a.details || "No details provided."}</p>
+                  </div>
+                </article>
+              ))}
+          </div>
         )}
       </section>
 
@@ -108,4 +118,10 @@ function imageFitClass(url: string) {
   const lower = String(url || "").toLowerCase();
   const isIllustration = lower.includes(".png") || lower.includes(".svg") || lower.includes("illustration");
   return isIllustration ? "object-contain p-2" : "object-cover";
+}
+
+function formatDate(input: string) {
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return input;
+  return date.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "2-digit" });
 }

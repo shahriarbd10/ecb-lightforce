@@ -23,6 +23,17 @@ const updateSchema = z.object({
       assists: z.number().int().min(0).max(2000).optional(),
       cleanSheets: z.number().int().min(0).max(1000).optional()
     })
+    .optional(),
+  achievements: z
+    .array(
+      z.object({
+        title: z.string().min(2).max(140),
+        details: z.string().max(800).optional(),
+        date: z.string().optional(),
+        image: z.string().url().optional().or(z.literal(""))
+      })
+    )
+    .max(30)
     .optional()
 });
 

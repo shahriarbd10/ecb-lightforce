@@ -3,6 +3,13 @@
 import { FormEvent, useEffect, useState } from "react";
 import PhotoUploader from "@/components/PhotoUploader";
 
+type AchievementItem = {
+  title: string;
+  details?: string;
+  date?: string;
+  image?: string;
+};
+
 type Profile = {
   slug?: string;
   age?: number;
@@ -22,6 +29,7 @@ type Profile = {
     assists?: number;
     cleanSheets?: number;
   };
+  achievements?: AchievementItem[];
 };
 
 const positionOptions = ["GK", "CB", "LB", "RB", "DM", "CM", "AM", "LW", "RW", "ST"];
@@ -45,8 +53,10 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
     headline: "",
     location: "",
     positions: [],
-    stats: { matches: 0, goals: 0, assists: 0, cleanSheets: 0 }
+    stats: { matches: 0, goals: 0, assists: 0, cleanSheets: 0 },
+    achievements: []
   });
+  const [achievementUploadIndex, setAchievementUploadIndex] = useState<number | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -75,12 +85,65 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
           goals: data.stats?.goals || 0,
           assists: data.stats?.assists || 0,
           cleanSheets: data.stats?.cleanSheets || 0
-        }
+        },
+        achievements: (data.achievements || []).map((a: any) => ({
+          title: a.title || "",
+          details: a.details || "",
+          date: a.date ? String(a.date).slice(0, 10) : "",
+          image: a.image || ""
+        }))
       });
       setLoading(false);
     }
     load();
   }, []);
+
+  async function uploadAchievementImage(file: File, index: number) {
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Achievement image must be 10 MB or less.");
+      return;
+    }
+
+    setError("");
+    setAchievementUploadIndex(index);
+    try {
+      const signRes = await fetch("/api/uploads/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folder: "ecb-lightforce/achievements", purpose: "achievement" })
+      });
+      if (!signRes.ok) throw new Error("Could not get upload signature.");
+      const signData = await signRes.json();
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", signData.apiKey);
+      formData.append("timestamp", String(signData.timestamp));
+      formData.append("folder", signData.folder);
+      formData.append("public_id", signData.publicId);
+      formData.append("signature", signData.signature);
+
+      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${signData.cloudName}/image/upload`, {
+        method: "POST",
+        body: formData
+      });
+      const uploaded = await uploadRes.json().catch(() => ({}));
+      if (!uploadRes.ok || !uploaded?.secure_url) {
+        throw new Error(uploaded?.error?.message || "Achievement image upload failed.");
+      }
+
+      setForm((s) => ({
+        ...s,
+        achievements: (s.achievements || []).map((item, i) =>
+          i === index ? { ...item, image: String(uploaded.secure_url) } : item
+        )
+      }));
+    } catch (e: any) {
+      setError(e?.message || "Could not upload achievement image.");
+    } finally {
+      setAchievementUploadIndex(null);
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -115,7 +178,7 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
         <StatCard label="Match Readiness" value={form.availableNow ? "Available" : "Not Available"} />
         <StatCard label="Matches Played" value={String(form.stats?.matches || 0)} />
         <StatCard label="Goal Contributions" value={String((form.stats?.goals || 0) + (form.stats?.assists || 0))} />
-        <StatCard label="Primary Role" value={form.positions?.[0] || "Not set"} />
+        <StatCard label="Achievements" value={String(form.achievements?.length || 0)} />
       </section>
 
       <section className="glass-panel p-5 md:p-6">
@@ -262,6 +325,147 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
             value={form.stats?.cleanSheets || 0}
             onChange={(value) => setForm((s) => ({ ...s, stats: { ...(s.stats || {}), cleanSheets: value } }))}
           />
+        </div>
+      </section>
+
+      <section className="glass-panel p-5 md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">Achievements</p>
+            <h3 className="mt-1 text-xl font-semibold text-white">Career Highlights</h3>
+          </div>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() =>
+              setForm((s) => ({
+                ...s,
+                achievements: [...(s.achievements || []), { title: "", details: "", date: "", image: "" }]
+              }))
+            }
+          >
+            Add Achievement
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-4">
+          {(form.achievements || []).length === 0 ? (
+            <p className="text-sm text-white/70">No achievements added yet.</p>
+          ) : (
+            (form.achievements || []).map((achievement, idx) => (
+              <div key={`achievement-${idx}`} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-medium text-white">Achievement {idx + 1}</p>
+                  <button
+                    type="button"
+                    className="text-xs text-red-300 underline"
+                    onClick={() =>
+                      setForm((s) => ({
+                        ...s,
+                        achievements: (s.achievements || []).filter((_, i) => i !== idx)
+                      }))
+                    }
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <label className="space-y-1">
+                    <span className="text-sm text-white/80">Title</span>
+                    <input
+                      className="input"
+                      value={achievement.title || ""}
+                      onChange={(e) =>
+                        setForm((s) => ({
+                          ...s,
+                          achievements: (s.achievements || []).map((item, i) =>
+                            i === idx ? { ...item, title: e.target.value } : item
+                          )
+                        }))
+                      }
+                      placeholder="Inter University Cup Winner"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-sm text-white/80">Date</span>
+                    <input
+                      className="input"
+                      type="date"
+                      value={achievement.date || ""}
+                      onChange={(e) =>
+                        setForm((s) => ({
+                          ...s,
+                          achievements: (s.achievements || []).map((item, i) =>
+                            i === idx ? { ...item, date: e.target.value } : item
+                          )
+                        }))
+                      }
+                    />
+                  </label>
+                </div>
+
+                <label className="mt-3 block space-y-1">
+                  <span className="text-sm text-white/80">Details</span>
+                  <textarea
+                    className="input min-h-20"
+                    value={achievement.details || ""}
+                    onChange={(e) =>
+                      setForm((s) => ({
+                        ...s,
+                        achievements: (s.achievements || []).map((item, i) =>
+                          i === idx ? { ...item, details: e.target.value } : item
+                        )
+                      }))
+                    }
+                    placeholder="Tournament, contribution, role, impact..."
+                  />
+                </label>
+
+                <div className="mt-3 grid gap-3 md:grid-cols-[1fr_160px]">
+                  <div className="space-y-1">
+                    <span className="text-sm text-white/80">Achievement Image URL</span>
+                    <input
+                      className="input"
+                      value={achievement.image || ""}
+                      onChange={(e) =>
+                        setForm((s) => ({
+                          ...s,
+                          achievements: (s.achievements || []).map((item, i) =>
+                            i === idx ? { ...item, image: e.target.value } : item
+                          )
+                        }))
+                      }
+                      placeholder="https://..."
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="input"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadAchievementImage(file, idx);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                    <p className="text-xs text-white/60">
+                      {achievementUploadIndex === idx ? "Uploading image..." : "Recommended: 1200x800, max 10 MB."}
+                    </p>
+                  </div>
+
+                  <div>
+                    {achievement.image ? (
+                      <img src={achievement.image} alt={`Achievement ${idx + 1}`} className="h-32 w-full rounded-lg border border-white/15 object-cover" />
+                    ) : (
+                      <div className="flex h-32 w-full items-center justify-center rounded-lg border border-white/15 text-xs text-white/55">
+                        No image
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
