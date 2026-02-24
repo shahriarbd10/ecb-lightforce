@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import PhotoUploader from "@/components/PhotoUploader";
@@ -107,6 +107,8 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
     return <p className="mt-6 text-white/70">Loading dashboard...</p>;
   }
 
+  const storedPhotos = Array.from(new Set([...(form.photos || []), ...(form.profilePhoto ? [form.profilePhoto] : [])]));
+
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -121,7 +123,7 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">Player Identity</p>
             <h2 className="mt-1 text-2xl font-bold text-white">{userName}</h2>
-            <p className="text-sm text-white/70">Role: {role} • Public Slug: {form.slug || "pending"}</p>
+            <p className="text-sm text-white/70">Role: {role} · Public Slug: {form.slug || "pending"}</p>
           </div>
           {form.slug ? (
             <a href={`/players/${form.slug}`} className="btn-muted text-sm">
@@ -230,9 +232,7 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
               );
             })}
           </div>
-          <p className="mt-4 text-sm text-white/70">
-            Profile: Age {form.age || "-"} • Preferred foot {form.foot || "-"}
-          </p>
+          <p className="mt-4 text-sm text-white/70">Profile: Age {form.age || "-"} · Preferred foot {form.foot || "-"}</p>
         </div>
       </section>
 
@@ -267,7 +267,7 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
 
       <section className="glass-panel p-5 md:p-6">
         <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">Media</p>
-        <h3 className="mt-1 text-xl font-semibold text-white">Photo Gallery</h3>
+        <h3 className="mt-1 text-xl font-semibold text-white">Profile Photo</h3>
         <div className="mt-4">
           <PhotoUploader
             value={form.photos || []}
@@ -297,6 +297,7 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
             maxFiles={10}
           />
         </div>
+
         <div className="mt-4 grid gap-3 md:grid-cols-[120px_1fr]">
           <div>
             <p className="text-xs uppercase tracking-[0.12em] text-white/60">Current Avatar</p>
@@ -312,22 +313,31 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
               </div>
             )}
           </div>
-          <label className="space-y-1">
-            <span className="text-sm text-white/80">Primary Profile Photo</span>
-            <select
-              className="input"
-              value={form.profilePhoto || ""}
-              onChange={(e) => setForm((s) => ({ ...s, profilePhoto: e.target.value }))}
-              disabled={!form.photos?.length}
-            >
-              {!form.photos?.length ? <option value="">Upload photos first</option> : null}
-              {(form.photos || []).map((url, idx) => (
-                <option key={url} value={url}>
-                  Photo {idx + 1}
-                </option>
-              ))}
-            </select>
-          </label>
+
+          <div className="space-y-2">
+            <span className="text-sm text-white/80">Select Active Photo (Preview)</span>
+            {storedPhotos.length === 0 ? (
+              <p className="text-xs text-white/55">Upload a photo first.</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-2 md:grid-cols-5">
+                {storedPhotos.map((url, idx) => {
+                  const active = form.profilePhoto === url;
+                  return (
+                    <button
+                      key={`${url}-${idx}`}
+                      type="button"
+                      onClick={() => setForm((s) => ({ ...s, profilePhoto: url }))}
+                      className={`overflow-hidden rounded-lg border ${active ? "border-pitch-300 ring-1 ring-pitch-300" : "border-white/15"}`}
+                    >
+                      <div className="aspect-square w-full bg-white/5">
+                        <img src={url} alt={`Profile option ${idx + 1}`} className="h-full w-full object-cover" />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
