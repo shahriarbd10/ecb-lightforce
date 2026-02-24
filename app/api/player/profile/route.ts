@@ -5,8 +5,14 @@ import { dbAwareErrorResponse } from "@/lib/api-error";
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import PlayerProfile from "@/lib/models/PlayerProfile";
+import User from "@/lib/models/User";
 
 const updateSchema = z.object({
+  name: z.string().min(2).max(80).optional(),
+  age: z.number().int().min(8).max(60).optional(),
+  heightCm: z.number().int().min(100).max(250).optional(),
+  weightKg: z.number().int().min(30).max(200).optional(),
+  foot: z.enum(["left", "right", "both"]).optional(),
   bio: z.string().max(1200).optional(),
   availableNow: z.boolean().optional(),
   availableTime: z.string().max(120).optional(),
@@ -52,12 +58,15 @@ export async function GET() {
     }
 
     await connectToDatabase();
-    const profile = await PlayerProfile.findOne({ user: session.user.id }).lean();
+    const [profile, user] = await Promise.all([
+      PlayerProfile.findOne({ user: session.user.id }).lean(),
+      User.findById(session.user.id).select("name").lean()
+    ]);
     if (!profile) {
       return NextResponse.json({ message: "Player profile not found." }, { status: 404 });
     }
 
-    return NextResponse.json(profile);
+    return NextResponse.json({ ...profile, name: user?.name || session.user.name || "" });
   } catch (error: any) {
     return dbAwareErrorResponse("Could not fetch profile.", error);
   }
@@ -72,13 +81,13 @@ export async function PATCH(request: Request) {
 
     const body = await request.json();
     const payload = updateSchema.parse(body);
+    const { name, ...profilePayload } = payload;
 
     await connectToDatabase();
-    const profile = await PlayerProfile.findOneAndUpdate(
-      { user: session.user.id },
-      { $set: payload },
-      { new: true }
-    ).lean();
+    if (name) {
+      await User.findByIdAndUpdate(session.user.id, { $set: { name } });
+    }
+    const profile = await PlayerProfile.findOneAndUpdate({ user: session.user.id }, { $set: profilePayload }, { new: true }).lean();
 
     if (!profile) {
       return NextResponse.json({ message: "Player profile not found." }, { status: 404 });

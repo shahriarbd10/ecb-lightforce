@@ -11,8 +11,11 @@ type AchievementItem = {
 };
 
 type Profile = {
+  name?: string;
   slug?: string;
   age?: number;
+  heightCm?: number;
+  weightKg?: number;
   foot?: "left" | "right" | "both";
   bio?: string;
   availableNow?: boolean;
@@ -46,8 +49,11 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [form, setForm] = useState<Profile>({
+    name: userName,
     slug: "",
     age: 0,
+    heightCm: 0,
+    weightKg: 0,
     foot: "right",
     bio: "",
     availableNow: false,
@@ -75,7 +81,10 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
       }
       setForm({
         slug: data.slug || "",
+        name: data.name || userName,
         age: data.age || 0,
+        heightCm: data.heightCm || 0,
+        weightKg: data.weightKg || 0,
         foot: data.foot || "right",
         bio: data.bio || "",
         availableNow: !!data.availableNow,
@@ -201,7 +210,7 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">Player Identity</p>
-            <h2 className="mt-1 text-2xl font-bold text-white">{userName}</h2>
+            <h2 className="mt-1 text-2xl font-bold text-white">{form.name || userName}</h2>
             <p className="text-sm text-white/70">Role: {role} · Public Slug: {form.slug || "pending"}</p>
           </div>
           {form.slug ? (
@@ -212,6 +221,15 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <label className="space-y-1">
+            <span className="text-sm text-white/80">Full Name</span>
+            <input
+              className="input"
+              value={form.name || ""}
+              onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+              placeholder="Your display name"
+            />
+          </label>
           <label className="space-y-1">
             <span className="text-sm text-white/80">Headline</span>
             <input
@@ -228,6 +246,51 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
               value={form.location || ""}
               onChange={(e) => setForm((s) => ({ ...s, location: e.target.value }))}
               placeholder="Dhaka, Bangladesh"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-sm text-white/80">Age</span>
+            <input
+              className="input"
+              type="number"
+              min={8}
+              max={60}
+              value={form.age || 0}
+              onChange={(e) => setForm((s) => ({ ...s, age: Math.max(8, Number(e.target.value) || 8) }))}
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-sm text-white/80">Preferred Foot</span>
+            <select
+              className="input"
+              value={form.foot || "right"}
+              onChange={(e) => setForm((s) => ({ ...s, foot: e.target.value as "left" | "right" | "both" }))}
+            >
+              <option value="right">Right</option>
+              <option value="left">Left</option>
+              <option value="both">Both</option>
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="text-sm text-white/80">Height (cm)</span>
+            <input
+              className="input"
+              type="number"
+              min={100}
+              max={250}
+              value={form.heightCm || 0}
+              onChange={(e) => setForm((s) => ({ ...s, heightCm: Math.max(100, Number(e.target.value) || 100) }))}
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-sm text-white/80">Weight (kg)</span>
+            <input
+              className="input"
+              type="number"
+              min={30}
+              max={200}
+              value={form.weightKg || 0}
+              onChange={(e) => setForm((s) => ({ ...s, weightKg: Math.max(30, Number(e.target.value) || 30) }))}
             />
           </label>
         </div>
@@ -311,7 +374,10 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
               );
             })}
           </div>
-          <p className="mt-4 text-sm text-white/70">Profile: Age {form.age || "-"} · Preferred foot {form.foot || "-"}</p>
+          <p className="mt-4 text-sm text-white/70">
+            Profile: Age {form.age || "-"} · Preferred foot {form.foot || "-"} · {form.heightCm || "-"} cm ·{" "}
+            {form.weightKg || "-"} kg
+          </p>
         </div>
       </section>
 

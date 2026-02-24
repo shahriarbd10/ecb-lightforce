@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 type HubPlayer = {
   id: string;
@@ -45,6 +45,7 @@ export default function EcbHubPage() {
   const [comparePosition, setComparePosition] = useState("");
   const [compareMinAge, setCompareMinAge] = useState("");
   const [compareMaxAge, setCompareMaxAge] = useState("");
+  const [previewImage, setPreviewImage] = useState<{ src: string; title: string } | null>(null);
 
   const query = useMemo(() => {
     const p = new URLSearchParams();
@@ -139,6 +140,16 @@ export default function EcbHubPage() {
       return true;
     });
   }, [players, comparePosition, compareSearch, compareMinAge, compareMaxAge]);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setPreviewImage(null);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   function toggleSelection(id: string) {
     setSelectedPlayerIds((prev) => {
@@ -281,12 +292,23 @@ export default function EcbHubPage() {
             <div className="relative overflow-hidden border-b border-white/10">
               <div className="aspect-[4/3] w-full bg-black/20">
                 {player.profilePhoto || player.photos?.[0] ? (
-                  <img
-                    src={player.profilePhoto || player.photos[0]}
-                    alt={`${player.name} profile`}
-                    className={`h-full w-full transition duration-500 group-hover:scale-105 ${imageFitClass(player.profilePhoto || player.photos[0])}`}
-                    style={photoStyle(player)}
-                  />
+                  <button
+                    type="button"
+                    className="h-full w-full"
+                    onClick={() =>
+                      setPreviewImage({
+                        src: player.profilePhoto || player.photos[0],
+                        title: `${player.name} | ${player.headline || "Football & Futsal Player"}`
+                      })
+                    }
+                  >
+                    <img
+                      src={player.profilePhoto || player.photos[0]}
+                      alt={`${player.name} profile`}
+                      className={`h-full w-full transition duration-500 group-hover:scale-105 ${imageFitClass(player.profilePhoto || player.photos[0])}`}
+                      style={photoStyle(player)}
+                    />
+                  </button>
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-sm text-white/55">No photo</div>
                 )}
@@ -410,6 +432,42 @@ export default function EcbHubPage() {
           </div>
         )}
       </section>
+
+      <AnimatePresence>
+        {previewImage ? (
+          <motion.div
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPreviewImage(null)}
+          >
+            <motion.div
+              className="glass-panel relative w-full max-w-5xl overflow-hidden p-0"
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 8 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="absolute right-3 top-3 z-10 rounded-full bg-black/60 px-3 py-1 text-sm text-white hover:bg-black/80"
+                onClick={() => setPreviewImage(null)}
+              >
+                Close
+              </button>
+              <div className="max-h-[78vh] w-full bg-black/35">
+                <img src={previewImage.src} alt={previewImage.title} className="h-full max-h-[78vh] w-full object-contain" />
+              </div>
+              <div className="border-t border-white/10 p-4">
+                <p className="text-sm font-medium text-white">{previewImage.title}</p>
+                <p className="mt-1 text-xs text-white/65">Press ESC to close</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </main>
   );
 }
