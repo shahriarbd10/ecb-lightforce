@@ -26,7 +26,34 @@ export async function POST(request: Request) {
       publicId,
       signature
     });
-  } catch {
-    return NextResponse.json({ message: "Could not generate upload signature." }, { status: 500 });
+  } catch (error: any) {
+    const message = String(error?.message || "");
+    if (message.includes("Cloudinary env vars are missing")) {
+      return NextResponse.json(
+        {
+          message: "Cloudinary is not configured on server.",
+          code: "CLOUDINARY_ENV_MISSING"
+        },
+        { status: 500 }
+      );
+    }
+
+    if (message.toLowerCase().includes("nextauth") || message.toLowerCase().includes("jwt")) {
+      return NextResponse.json(
+        {
+          message: "Authentication configuration issue on server.",
+          code: "AUTH_CONFIG_ERROR"
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        message: "Could not generate upload signature.",
+        code: "UPLOAD_SIGN_ERROR"
+      },
+      { status: 500 }
+    );
   }
 }
