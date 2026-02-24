@@ -45,7 +45,7 @@ export default function NavBar() {
 
         <div className="flex items-center gap-4 text-sm">
           <Link href="/ecb-hub" className="text-white/80 hover:text-white">
-            ECB Hub
+            Lightforce Hub
           </Link>
 
           {isLoggedIn ? (

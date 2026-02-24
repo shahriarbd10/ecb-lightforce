@@ -22,7 +22,7 @@ export default async function DashboardPage() {
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link href="/ecb-hub" className="btn-primary">
-            Open ECB Hub
+            Open Lightforce Hub
           </Link>
           <Link href="/register" className="btn-muted">
             Register New Player
