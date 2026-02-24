@@ -16,11 +16,15 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
     <main className="container-page">
       <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
         {(p.profilePhoto || (p.photos || [])[0]) ? (
-          <img
-            src={p.profilePhoto || p.photos[0]}
-            alt={`${p.user?.name || "Player"} profile`}
-            className="mb-4 h-40 w-40 rounded-2xl border border-white/15 object-cover"
-          />
+          <div className="mb-4 overflow-hidden rounded-2xl border border-white/15 bg-white/5">
+            <div className="h-44 w-44 md:h-52 md:w-52">
+              <img
+                src={p.profilePhoto || p.photos[0]}
+                alt={`${p.user?.name || "Player"} profile`}
+                className={`h-full w-full ${imageFitClass(p.profilePhoto || p.photos[0])}`}
+              />
+            </div>
+          </div>
         ) : null}
         <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">{p.availableNow ? "Available Now" : "Not Available"}</p>
         <h1 className="mt-2 text-4xl font-bold text-white">{p.user?.name || "Player"}</h1>
@@ -78,12 +82,11 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
         ) : (
           <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
             {(p.photos || []).map((url: string, idx: number) => (
-              <img
-                key={`${url}-${idx}`}
-                src={url}
-                alt={`Player photo ${idx + 1}`}
-                className="h-36 w-full rounded-xl border border-white/10 object-cover"
-              />
+              <div key={`${url}-${idx}`} className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                <div className="aspect-[4/3] w-full">
+                  <img src={url} alt={`Player photo ${idx + 1}`} className={`h-full w-full ${imageFitClass(url)}`} />
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -99,4 +102,10 @@ function Stat({ label, value }: { label: string; value: string }) {
       <p className="mt-1 text-lg font-semibold text-white">{value}</p>
     </div>
   );
+}
+
+function imageFitClass(url: string) {
+  const lower = String(url || "").toLowerCase();
+  const isIllustration = lower.includes(".png") || lower.includes(".svg") || lower.includes("illustration");
+  return isIllustration ? "object-contain p-2" : "object-cover";
 }

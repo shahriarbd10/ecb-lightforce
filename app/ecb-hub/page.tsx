@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -126,11 +126,15 @@ export default function EcbHubPage() {
         {players.map((player) => (
           <article key={player.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
             {player.profilePhoto || player.photos?.[0] ? (
-              <img
-                src={player.profilePhoto || player.photos[0]}
-                alt={`${player.name} profile`}
-                className="mb-3 h-40 w-full rounded-xl object-cover"
-              />
+              <div className="mb-3 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                <div className="aspect-[4/3] w-full">
+                  <img
+                    src={player.profilePhoto || player.photos[0]}
+                    alt={`${player.name} profile`}
+                    className={`h-full w-full ${imageFitClass(player.profilePhoto || player.photos[0])}`}
+                  />
+                </div>
+              </div>
             ) : null}
             <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">{player.availableNow ? "Available Now" : "Busy"}</p>
             <h2 className="mt-2 text-xl font-semibold">{player.name}</h2>
@@ -150,4 +154,10 @@ export default function EcbHubPage() {
       </section>
     </main>
   );
+}
+
+function imageFitClass(url: string) {
+  const lower = String(url || "").toLowerCase();
+  const isIllustration = lower.includes(".png") || lower.includes(".svg") || lower.includes("illustration");
+  return isIllustration ? "object-contain p-2" : "object-cover";
 }
