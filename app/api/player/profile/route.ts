@@ -13,6 +13,13 @@ const updateSchema = z.object({
   offDays: z.array(z.string().max(20)).max(7).optional(),
   photos: z.array(z.string().url()).max(12).optional(),
   profilePhoto: z.string().url().optional(),
+  profilePhotoMeta: z
+    .object({
+      x: z.number().min(0).max(100).optional(),
+      y: z.number().min(0).max(100).optional(),
+      zoom: z.number().min(1).max(2).optional()
+    })
+    .optional(),
   headline: z.string().max(120).optional(),
   location: z.string().max(120).optional(),
   positions: z.array(z.string().max(10)).max(6).optional(),

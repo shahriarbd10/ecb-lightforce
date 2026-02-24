@@ -19,6 +19,11 @@ type Profile = {
   availableTime?: string;
   offDays?: string[];
   profilePhoto?: string;
+  profilePhotoMeta?: {
+    x?: number;
+    y?: number;
+    zoom?: number;
+  };
   photos?: string[];
   headline?: string;
   location?: string;
@@ -49,6 +54,7 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
     availableTime: "",
     offDays: [],
     profilePhoto: "",
+    profilePhotoMeta: { x: 50, y: 50, zoom: 1 },
     photos: [],
     headline: "",
     location: "",
@@ -76,6 +82,11 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
         availableTime: data.availableTime || "",
         offDays: data.offDays || [],
         profilePhoto: data.profilePhoto || (data.photos || [])[0] || "",
+        profilePhotoMeta: {
+          x: data.profilePhotoMeta?.x ?? 50,
+          y: data.profilePhotoMeta?.y ?? 50,
+          zoom: data.profilePhotoMeta?.zoom ?? 1
+        },
         photos: data.photos || [],
         headline: data.headline || "",
         location: data.location || "",
@@ -171,6 +182,11 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
   }
 
   const storedPhotos = Array.from(new Set([...(form.photos || []), ...(form.profilePhoto ? [form.profilePhoto] : [])]));
+  const photoMeta = {
+    x: form.profilePhotoMeta?.x ?? 50,
+    y: form.profilePhotoMeta?.y ?? 50,
+    zoom: form.profilePhotoMeta?.zoom ?? 1
+  };
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
@@ -511,6 +527,10 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
                 src={form.profilePhoto}
                 alt="Primary profile"
                 className="mt-2 h-24 w-24 rounded-xl border border-white/15 object-cover"
+                style={{
+                  objectPosition: `${photoMeta.x}% ${photoMeta.y}%`,
+                  transform: `scale(${photoMeta.zoom})`
+                }}
               />
             ) : (
               <div className="mt-2 flex h-24 w-24 items-center justify-center rounded-xl border border-white/15 text-xs text-white/50">
@@ -531,7 +551,13 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
                     <button
                       key={`${url}-${idx}`}
                       type="button"
-                      onClick={() => setForm((s) => ({ ...s, profilePhoto: url }))}
+                      onClick={() =>
+                        setForm((s) => ({
+                          ...s,
+                          profilePhoto: url,
+                          profilePhotoMeta: s.profilePhoto === url ? s.profilePhotoMeta : { x: 50, y: 50, zoom: 1 }
+                        }))
+                      }
                       className={`overflow-hidden rounded-lg border ${active ? "border-pitch-300 ring-1 ring-pitch-300" : "border-white/15"}`}
                     >
                       <div className="aspect-square w-full bg-white/5">
@@ -544,6 +570,66 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
             )}
           </div>
         </div>
+
+        {form.profilePhoto ? (
+          <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-sm font-semibold text-white">Adjust Profile Photo View</p>
+            <p className="mt-1 text-xs text-white/65">Set focus and zoom for how your profile photo appears in cards.</p>
+            <div className="mt-3 grid gap-3 md:grid-cols-3">
+              <label className="space-y-1">
+                <span className="text-xs text-white/75">Horizontal Focus ({Math.round(photoMeta.x)}%)</span>
+                <input
+                  className="w-full"
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={photoMeta.x}
+                  onChange={(e) =>
+                    setForm((s) => ({
+                      ...s,
+                      profilePhotoMeta: { ...(s.profilePhotoMeta || {}), x: Number(e.target.value) }
+                    }))
+                  }
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs text-white/75">Vertical Focus ({Math.round(photoMeta.y)}%)</span>
+                <input
+                  className="w-full"
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={photoMeta.y}
+                  onChange={(e) =>
+                    setForm((s) => ({
+                      ...s,
+                      profilePhotoMeta: { ...(s.profilePhotoMeta || {}), y: Number(e.target.value) }
+                    }))
+                  }
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs text-white/75">Zoom ({photoMeta.zoom.toFixed(2)}x)</span>
+                <input
+                  className="w-full"
+                  type="range"
+                  min={1}
+                  max={2}
+                  step={0.05}
+                  value={photoMeta.zoom}
+                  onChange={(e) =>
+                    setForm((s) => ({
+                      ...s,
+                      profilePhotoMeta: { ...(s.profilePhotoMeta || {}), zoom: Number(e.target.value) }
+                    }))
+                  }
+                />
+              </label>
+            </div>
+          </div>
+        ) : null}
       </section>
 
       {error ? <p className="text-sm text-red-300">{error}</p> : null}

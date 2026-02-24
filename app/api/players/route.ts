@@ -51,6 +51,7 @@ export async function GET(request: Request) {
           positions: p.positions || [],
           availableNow: p.availableNow,
           profilePhoto: p.profilePhoto || (p.photos || [])[0] || "",
+          profilePhotoMeta: p.profilePhotoMeta || { x: 50, y: 50, zoom: 1 },
           photos: p.photos || [],
           headline: p.headline,
           stats: p.stats

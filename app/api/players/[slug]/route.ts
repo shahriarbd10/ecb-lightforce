@@ -30,6 +30,7 @@ export async function GET(_: Request, context: { params: Promise<{ slug: string 
       availableTime: (player as any).availableTime,
       offDays: (player as any).offDays || [],
       profilePhoto: (player as any).profilePhoto || ((player as any).photos || [])[0] || "",
+      profilePhotoMeta: (player as any).profilePhotoMeta || { x: 50, y: 50, zoom: 1 },
       photos: (player as any).photos || [],
       stats: (player as any).stats || {},
       achievements: (player as any).achievements || [],

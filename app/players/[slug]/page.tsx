@@ -22,6 +22,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                 src={p.profilePhoto || p.photos[0]}
                 alt={`${p.user?.name || "Player"} profile`}
                 className={`h-full w-full ${imageFitClass(p.profilePhoto || p.photos[0])}`}
+                style={mainPhotoStyle(p)}
               />
             </div>
           </div>
@@ -118,6 +119,14 @@ function imageFitClass(url: string) {
   const lower = String(url || "").toLowerCase();
   const isIllustration = lower.includes(".png") || lower.includes(".svg") || lower.includes("illustration");
   return isIllustration ? "object-contain p-2" : "object-cover";
+}
+
+function mainPhotoStyle(player: any) {
+  if (!player?.profilePhoto) return undefined;
+  const x = player?.profilePhotoMeta?.x ?? 50;
+  const y = player?.profilePhotoMeta?.y ?? 50;
+  const zoom = player?.profilePhotoMeta?.zoom ?? 1;
+  return { objectPosition: `${x}% ${y}%`, transform: `scale(${zoom})` };
 }
 
 function formatDate(input: string) {

@@ -43,6 +43,11 @@ const PlayerProfileSchema = new Schema(
     offDays: [{ type: String, trim: true }],
     availableTime: { type: String, default: "", trim: true },
     profilePhoto: { type: String, default: "" },
+    profilePhotoMeta: {
+      x: { type: Number, min: 0, max: 100, default: 50 },
+      y: { type: Number, min: 0, max: 100, default: 50 },
+      zoom: { type: Number, min: 1, max: 2, default: 1 }
+    },
     photos: [{ type: String }],
     achievements: [AchievementSchema],
     timeline: [TimelineSchema]

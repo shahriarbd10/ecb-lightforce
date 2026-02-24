@@ -25,9 +25,15 @@ export default async function DashboardPage() {
           <Link href="/ecb-hub" className="btn-primary">
             Open Lightforce Hub
           </Link>
-          <Link href="/register" className="btn-muted">
-            Register New Player
-          </Link>
+          {isAdmin ? (
+            <Link href="/register" className="btn-muted">
+              Register New Player
+            </Link>
+          ) : (
+            <a href="#player-profile-editor" className="btn-muted">
+              Customize Profile
+            </a>
+          )}
           {isAdmin ? (
             <Link href="/admin/media" className="btn-muted">
               Admin Media
@@ -51,7 +57,9 @@ export default async function DashboardPage() {
             <AdminPlayerManager />
           </>
         ) : (
-          <PlayerProfileEditor userName={session.user.name || "Player"} role={session.user.role} />
+          <div id="player-profile-editor">
+            <PlayerProfileEditor userName={session.user.name || "Player"} role={session.user.role} />
+          </div>
         )}
       </div>
     </main>

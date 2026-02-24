@@ -15,6 +15,11 @@ type HubPlayer = {
   positions: string[];
   availableNow: boolean;
   profilePhoto?: string;
+  profilePhotoMeta?: {
+    x?: number;
+    y?: number;
+    zoom?: number;
+  };
   photos: string[];
   headline: string;
   stats?: {
@@ -280,6 +285,7 @@ export default function EcbHubPage() {
                     src={player.profilePhoto || player.photos[0]}
                     alt={`${player.name} profile`}
                     className={`h-full w-full transition duration-500 group-hover:scale-105 ${imageFitClass(player.profilePhoto || player.photos[0])}`}
+                    style={photoStyle(player)}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-sm text-white/55">No photo</div>
@@ -420,6 +426,14 @@ function Bar({ label, value, max }: { label: string; value: number; max: number 
       </div>
     </div>
   );
+}
+
+function photoStyle(player: HubPlayer) {
+  if (!player.profilePhoto) return undefined;
+  const x = player.profilePhotoMeta?.x ?? 50;
+  const y = player.profilePhotoMeta?.y ?? 50;
+  const zoom = player.profilePhotoMeta?.zoom ?? 1;
+  return { objectPosition: `${x}% ${y}%`, transform: `scale(${zoom})` };
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

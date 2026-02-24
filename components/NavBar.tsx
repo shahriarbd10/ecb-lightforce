@@ -7,6 +7,7 @@ import { signOut, useSession } from "next-auth/react";
 export default function NavBar() {
   const { data: session, status } = useSession();
   const [avatar, setAvatar] = useState("");
+  const [avatarMeta, setAvatarMeta] = useState({ x: 50, y: 50, zoom: 1 });
 
   useEffect(() => {
     let mounted = true;
@@ -21,6 +22,11 @@ export default function NavBar() {
         const data = await res.json();
         if (mounted && res.ok) {
           setAvatar(String(data?.profilePhoto || data?.photos?.[0] || ""));
+          setAvatarMeta({
+            x: Number(data?.profilePhotoMeta?.x ?? 50),
+            y: Number(data?.profilePhotoMeta?.y ?? 50),
+            zoom: Number(data?.profilePhotoMeta?.zoom ?? 1)
+          });
         }
       } catch {
         if (mounted) setAvatar("");
@@ -62,7 +68,12 @@ export default function NavBar() {
               </button>
               <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-2 py-1">
                 {avatar ? (
-                  <img src={avatar} alt={userName} className="h-8 w-8 rounded-full object-cover" />
+                  <img
+                    src={avatar}
+                    alt={userName}
+                    className="h-8 w-8 rounded-full object-cover"
+                    style={{ objectPosition: `${avatarMeta.x}% ${avatarMeta.y}%`, transform: `scale(${avatarMeta.zoom})` }}
+                  />
                 ) : (
                   <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-pitch-400 font-semibold text-black">
                     {userName.slice(0, 1).toUpperCase()}
