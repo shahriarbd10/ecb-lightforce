@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed:admin": "node scripts/seed-admin.mjs",
+    "seed:user": "node scripts/seed-user.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -73,6 +73,33 @@ If you change port, update this value and restart `npm run dev`.
 npm run dev
 ```
 
+## Seeder Scripts
+Create initial admin and player accounts from terminal.
+
+Seed admin:
+```bash
+npm run seed:admin -- --email=admin@ecb.com --password=Admin@123456 --name="ECB Admin"
+```
+
+Seed player:
+```bash
+npm run seed:user -- --email=player1@ecb.com --password=Player@123456 --name="Player One" --positions=CM,RW --age=22
+```
+
+After seeding:
+- Login page: `/login`
+- Admin media manager (admin role): `/admin/media`
+- Player hub: `/ecb-hub`
+
+## HTML Seed Pages
+You can also seed from browser forms:
+- Admin seeder page: `/seed/admin`
+- User seeder page: `/seed/user`
+
+Security:
+- Set `SEEDER_KEY` in env to protect these endpoints.
+- In non-development environments, seeding requires `SEEDER_KEY`.
+
 ## Deploy with Vercel (No VPS)
 1. Push this repo to GitHub.
 2. Import repo in Vercel.
