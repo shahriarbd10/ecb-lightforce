@@ -4,6 +4,8 @@ import { defaultLandingConfig } from "@/lib/landing-config";
 import LandingConfig from "@/lib/models/LandingConfig";
 import LandingMedia from "@/lib/models/LandingMedia";
 
+export const dynamic = "force-dynamic";
+
 type ApiEvent = {
   idEvent?: string;
   strEvent?: string;
@@ -95,6 +97,18 @@ function pickDateTime(date?: string, time?: string, publishAt?: string) {
     }
   }
   return { date: "", time: "" };
+}
+
+function mergeUniqueByKey<T>(primary: T[], secondary: T[], keyFn: (item: T) => string) {
+  const map = new Map<string, T>();
+  for (const item of primary) {
+    map.set(keyFn(item), item);
+  }
+  for (const item of secondary) {
+    const key = keyFn(item);
+    if (!map.has(key)) map.set(key, item);
+  }
+  return Array.from(map.values());
 }
 
 export async function GET() {
@@ -195,12 +209,12 @@ export async function GET() {
       video: normalizeVideo(item.video || "")
     }));
 
-  const useManualByPresence =
-    manualHighlights.length > 0 || manualFixtures.length > 0 || manualVideoZone.length > 0;
-  const shouldUseManual = Boolean(landingConfig.feed?.useManualFeed) || useManualByPresence;
-  const finalHighlights = shouldUseManual && manualHighlights.length ? manualHighlights : highlights;
-  const finalFixtures = shouldUseManual && manualFixtures.length ? manualFixtures : fixtures;
-  const finalVideoZone = shouldUseManual && manualVideoZone.length ? manualVideoZone : [];
+  const shouldUseManual = Boolean(landingConfig.feed?.useManualFeed);
+  const mergedHighlights = mergeUniqueByKey(highlights, manualHighlights, (item) => `${item.title}|${item.date}|${item.time}`);
+  const mergedFixtures = mergeUniqueByKey(fixtures, manualFixtures, (item) => `${item.event}|${item.date}|${item.time}`);
+  const finalHighlights = shouldUseManual ? (manualHighlights.length ? manualHighlights : highlights) : mergedHighlights;
+  const finalFixtures = shouldUseManual ? (manualFixtures.length ? manualFixtures : fixtures) : mergedFixtures;
+  const finalVideoZone = shouldUseManual ? (manualVideoZone.length ? manualVideoZone : []) : manualVideoZone;
 
   return NextResponse.json({
     updatedAt: new Date().toISOString(),

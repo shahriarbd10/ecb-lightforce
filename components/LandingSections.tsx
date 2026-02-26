@@ -180,15 +180,6 @@ export default function LandingSections({ previewData = null, previewMode = fals
   );
 
   useEffect(() => {
-    if (!fixtureDates.length) return;
-    const [y, m] = calendarMonth.split("-").map(Number);
-    const hasInMonth = fixtureDates.some((d) => d.startsWith(`${y}-${String(m).padStart(2, "0")}`));
-    if (!hasInMonth) {
-      setCalendarMonth(fixtureDates[0].slice(0, 7));
-    }
-  }, [fixtureDates, calendarMonth]);
-
-  useEffect(() => {
     if (!selectedFixtureDate) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -777,27 +768,32 @@ function FixtureCalendarCard({
   const daysInMonth = new Date(year, month, 0).getDate();
   const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
   const days = Array.from({ length: totalCells }, (_, idx) => idx - firstDay + 1);
+  const monthPrefix = `${year}-${String(month).padStart(2, "0")}`;
+  const fixturesInMonth = fixtureDates.filter((d) => d.startsWith(monthPrefix));
 
   const title = monthStart.toLocaleString(undefined, { month: "long", year: "numeric" });
   const prevMonth = new Date(year, month - 2, 1);
   const nextMonth = new Date(year, month, 1);
 
   return (
-    <div className="mt-3 rounded-xl border border-white/15 bg-white/[0.03] p-3">
+    <div className="mt-3 rounded-2xl border border-white/15 bg-gradient-to-br from-white/[0.08] via-white/[0.03] to-transparent p-3 shadow-[0_14px_38px_rgba(0,0,0,0.28)]">
       <div className="mb-3 flex items-center justify-between">
         <button
           type="button"
           onClick={() => onMonthChange(`${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, "0")}`)}
-          className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+          className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/80 hover:bg-white/10"
           aria-label="Previous month"
         >
           Prev
         </button>
-        <p className="text-sm font-semibold text-white">{title}</p>
+        <div className="text-center">
+          <p className="font-display text-xl leading-none text-white">{title}</p>
+          <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-pitch-200">{fixturesInMonth.length} fixture dates</p>
+        </div>
         <button
           type="button"
           onClick={() => onMonthChange(`${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, "0")}`)}
-          className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+          className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/80 hover:bg-white/10"
           aria-label="Next month"
         >
           Next
@@ -822,9 +818,9 @@ function FixtureCalendarCard({
               key={dateKey}
               type="button"
               onClick={() => (hasFixture ? onOpenDate(dateKey) : undefined)}
-              className={`relative h-11 rounded-md border text-sm font-medium transition ${
+              className={`relative h-11 rounded-lg border text-sm font-medium transition ${
                 hasFixture
-                  ? "border-pitch-300/60 bg-pitch-300/15 text-pitch-100 hover:bg-pitch-300/25"
+                  ? "border-pitch-300/60 bg-pitch-300/15 text-pitch-100 hover:-translate-y-0.5 hover:bg-pitch-300/25"
                   : "border-white/10 bg-white/[0.02] text-white/55"
               }`}
               aria-label={hasFixture ? `View fixtures on ${dateKey}` : `No fixtures on ${dateKey}`}
@@ -836,6 +832,9 @@ function FixtureCalendarCard({
         })}
       </div>
       {!fixtureDates.length ? <p className="mt-3 text-xs text-white/60">No fixtures scheduled yet.</p> : null}
+      {fixtureDates.length && fixturesInMonth.length === 0 ? (
+        <p className="mt-3 text-xs text-white/60">No fixtures in this month. Use next/prev to browse other months.</p>
+      ) : null}
     </div>
   );
 }
