@@ -166,10 +166,11 @@ export default function LandingSections({ previewData = null, previewMode = fals
   const fixturesByDate = useMemo(() => {
     const bucket = new Map<string, FixtureItem[]>();
     for (const fixture of feed?.fixtures || []) {
-      if (!fixture.date) continue;
-      const list = bucket.get(fixture.date) || [];
+      const key = normalizeDateKey(fixture.date);
+      if (!key) continue;
+      const list = bucket.get(key) || [];
       list.push(fixture);
-      bucket.set(fixture.date, list);
+      bucket.set(key, list);
     }
     return bucket;
   }, [feed?.fixtures]);
@@ -953,6 +954,25 @@ function ManagedMediaPreview({
 
 function isVideoFile(url: string) {
   return /\.(mp4|webm|ogg)(\?|$)/i.test(url);
+}
+
+function normalizeDateKey(date?: string) {
+  if (!date) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+  const fromNative = new Date(date);
+  if (!Number.isNaN(fromNative.getTime())) {
+    const y = fromNative.getFullYear();
+    const m = String(fromNative.getMonth() + 1).padStart(2, "0");
+    const d = String(fromNative.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  const mdY = date.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mdY) {
+    const m = String(Number(mdY[1])).padStart(2, "0");
+    const d = String(Number(mdY[2])).padStart(2, "0");
+    return `${mdY[3]}-${m}-${d}`;
+  }
+  return "";
 }
 
 function formatDate(date?: string, time?: string) {

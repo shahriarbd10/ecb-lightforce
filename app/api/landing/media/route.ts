@@ -185,7 +185,7 @@ export async function GET() {
     });
 
   const manualFixtures = (landingConfig.feed?.fixtures || [])
-    .filter((item: any) => item?.isActive !== false && isPublished(item?.publishAt))
+    .filter((item: any) => item?.isActive !== false)
     .map((item: any, index: number) => {
       const dt = pickDateTime(item.date, item.time, item.publishAt);
       return {
