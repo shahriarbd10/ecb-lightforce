@@ -14,6 +14,8 @@ const updateSchema = z.object({
   linkUrl: z.string().url().optional().or(z.literal("")),
   placement: z.enum(["hero", "ads", "spotlight", "reels"]).optional(),
   order: z.number().int().min(0).max(999).optional(),
+  colSpan: z.number().int().min(1).max(3).optional(),
+  cardHeight: z.number().int().min(160).max(520).optional(),
   isActive: z.boolean().optional()
 });
 

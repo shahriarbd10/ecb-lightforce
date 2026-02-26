@@ -14,6 +14,8 @@ const createSchema = z.object({
   linkUrl: z.string().url().optional().or(z.literal("")),
   placement: z.enum(["hero", "ads", "spotlight", "reels"]).default("ads"),
   order: z.number().int().min(0).max(999).default(0),
+  colSpan: z.number().int().min(1).max(3).default(1),
+  cardHeight: z.number().int().min(160).max(520).default(220),
   isActive: z.boolean().default(true)
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toEmbedUrl } from "@/lib/media-embed";
 
 type Placement = "hero" | "spotlight" | "reels" | "ads";
@@ -14,6 +14,8 @@ type MediaItem = {
   linkUrl?: string;
   placement: Placement;
   order: number;
+  colSpan: number;
+  cardHeight: number;
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -27,6 +29,8 @@ type FormState = {
   linkUrl: string;
   placement: Placement;
   order: number;
+  colSpan: number;
+  cardHeight: number;
   isActive: boolean;
 };
 
@@ -45,6 +49,8 @@ const initial: FormState = {
   linkUrl: "",
   placement: "hero",
   order: 0,
+  colSpan: 1,
+  cardHeight: 220,
   isActive: true
 };
 
@@ -94,8 +100,10 @@ export default function AdminMediaManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingField, setUploadingField] = useState<"media" | "thumbnail" | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const resizerRef = useRef<HTMLDivElement | null>(null);
 
   async function load() {
     setLoading(true);
@@ -167,7 +175,9 @@ export default function AdminMediaManager() {
         title: form.title.trim(),
         mediaUrl: form.mediaUrl.trim(),
         thumbnailUrl: form.thumbnailUrl.trim(),
-        linkUrl: form.linkUrl.trim()
+        linkUrl: form.linkUrl.trim(),
+        colSpan: form.colSpan,
+        cardHeight: form.cardHeight
       })
     });
 
@@ -226,6 +236,8 @@ export default function AdminMediaManager() {
       linkUrl: item.linkUrl || "",
       placement: item.placement,
       order: item.order,
+      colSpan: item.colSpan || 1,
+      cardHeight: item.cardHeight || 220,
       isActive: item.isActive
     });
     setError("");
@@ -245,6 +257,34 @@ export default function AdminMediaManager() {
   async function remove(item: MediaItem) {
     await fetch(`/api/admin/landing-media/${item._id}`, { method: "DELETE" });
     if (editingId === item._id) resetForm();
+    await load();
+  }
+
+  async function moveItem(draggedId: string, targetItem: MediaItem) {
+    const dragged = items.find((i) => i._id === draggedId);
+    if (!dragged || dragged.placement !== targetItem.placement || dragged._id === targetItem._id) return;
+
+    const samePlacement = items
+      .filter((i) => i.placement === targetItem.placement)
+      .sort((a, b) => a.order - b.order)
+      .map((i) => ({ ...i }));
+
+    const from = samePlacement.findIndex((i) => i._id === draggedId);
+    const to = samePlacement.findIndex((i) => i._id === targetItem._id);
+    if (from === -1 || to === -1) return;
+
+    const [moved] = samePlacement.splice(from, 1);
+    samePlacement.splice(to, 0, moved);
+
+    await Promise.all(
+      samePlacement.map((item, idx) =>
+        fetch(`/api/admin/landing-media/${item._id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: idx })
+        })
+      )
+    );
     await load();
   }
 
@@ -319,6 +359,30 @@ export default function AdminMediaManager() {
               onChange={(e) => setForm((prev) => ({ ...prev, order: Number(e.target.value) || 0 }))}
             />
           </label>
+          <label className="space-y-1">
+            <span className="text-sm text-white/80">Card Width (Columns)</span>
+            <select
+              className="input"
+              value={form.colSpan}
+              onChange={(e) => setForm((prev) => ({ ...prev, colSpan: Number(e.target.value) || 1 }))}
+            >
+              <option value={1}>1 column</option>
+              <option value={2}>2 columns</option>
+              <option value={3}>3 columns</option>
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="text-sm text-white/80">Card Height ({form.cardHeight}px)</span>
+            <input
+              className="input"
+              type="range"
+              min={160}
+              max={520}
+              step={10}
+              value={form.cardHeight}
+              onChange={(e) => setForm((prev) => ({ ...prev, cardHeight: Number(e.target.value) || 220 }))}
+            />
+          </label>
 
           <label className="space-y-1 md:col-span-2">
             <span className="text-sm text-white/80">Media URL</span>
@@ -388,6 +452,26 @@ export default function AdminMediaManager() {
             Publish as active
           </label>
 
+          <div className="md:col-span-2 rounded-xl border border-white/10 bg-black/20 p-3">
+            <p className="mb-2 text-xs uppercase tracking-[0.12em] text-white/70">Resize Preview (Drag corner)</p>
+            <div
+              ref={resizerRef}
+              className="resize overflow-auto rounded-lg border border-white/15 bg-white/5"
+              style={{ width: form.colSpan * 180, height: form.cardHeight, maxWidth: "100%" }}
+              onMouseUp={() => {
+                const el = resizerRef.current;
+                if (!el) return;
+                const w = el.clientWidth;
+                const h = el.clientHeight;
+                const nextCol = w < 280 ? 1 : w < 520 ? 2 : 3;
+                const nextHeight = Math.max(160, Math.min(520, Math.round(h / 10) * 10));
+                setForm((prev) => ({ ...prev, colSpan: nextCol, cardHeight: nextHeight }));
+              }}
+            >
+              <div className="h-full w-full p-3 text-xs text-white/70">Preview Size</div>
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-2 md:col-span-2">
             <button className="btn-primary" disabled={saving || uploadingField !== null}>
               {saving ? "Saving..." : editingId ? "Save Changes" : "Publish Media"}
@@ -445,14 +529,25 @@ export default function AdminMediaManager() {
                   <h3 className="mb-3 text-xs uppercase tracking-[0.18em] text-pitch-200">{group.label} Section</h3>
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {group.items.map((item) => (
-                      <article key={item._id} className="glass-soft overflow-hidden p-0">
+                      <article
+                        key={item._id}
+                        draggable
+                        onDragStart={() => setDragId(item._id)}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={async () => {
+                          if (dragId) await moveItem(dragId, item);
+                          setDragId(null);
+                        }}
+                        className="glass-soft overflow-hidden p-0"
+                      >
                         <MediaPreview item={item} />
                         <div className="space-y-2 p-4">
                           <p className="font-semibold text-white">{item.title}</p>
                           <p className="text-xs text-white/70">
-                            {item.type.toUpperCase()} | order {item.order} | {item.isActive ? "active" : "inactive"}
+                            {item.type.toUpperCase()} | order {item.order} | span {item.colSpan || 1} | h {item.cardHeight || 220}px | {item.isActive ? "active" : "inactive"}
                           </p>
                           <div className="flex flex-wrap gap-2 pt-1">
+                            <span className="rounded-full border border-white/15 px-2 py-1 text-[11px] text-white/70">Drag to reorder</span>
                             <button type="button" className="btn-muted" onClick={() => startEdit(item)}>
                               Edit / Replace
                             </button>
@@ -487,18 +582,20 @@ function StatCard({ label, value }: { label: string; value: string }) {
 }
 
 function MediaPreview({ item }: { item: MediaItem }) {
+  const h = Math.max(160, Math.min(520, item.cardHeight || 220));
   if (item.type === "image") {
-    return <img src={item.mediaUrl} alt={item.title} className="h-44 w-full object-cover" />;
+    return <img src={item.mediaUrl} alt={item.title} className="w-full object-cover" style={{ height: h }} />;
   }
 
   if (isVideoFile(item.mediaUrl)) {
-    return <video src={item.mediaUrl} controls className="h-44 w-full object-cover" />;
+    return <video src={item.mediaUrl} controls className="w-full object-cover" style={{ height: h }} />;
   }
 
   return (
     <iframe
       src={toEmbedUrl(item.mediaUrl)}
-      className="h-44 w-full"
+      className="w-full"
+      style={{ height: h }}
       title={item.title}
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowFullScreen

@@ -21,8 +21,19 @@ body {
   min-height: 100vh;
   background: #020a05;
   color: #f3fff7;
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
   background-image: radial-gradient(circle at 10% 10%, rgba(18, 102, 53, 0.2), transparent 30%),
     radial-gradient(circle at 80% 0%, rgba(132, 255, 186, 0.12), transparent 35%);
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+  letter-spacing: 0.02em;
 }
 
 .container-page {
@@ -50,6 +61,8 @@ body {
     linear-gradient(140deg, #7affb5 0%, #28dc7b 55%, #11b660 100%);
   box-shadow: 0 10px 26px rgba(17, 182, 96, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   transform: translateY(0);
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-muted {
@@ -60,11 +73,13 @@ body {
     rgba(255, 255, 255, 0.08);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
   transform: translateY(0);
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary:hover,
 .btn-muted:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.01);
 }
 
 .btn-primary:active,
@@ -96,4 +111,47 @@ select.input {
 select.input option {
   background: var(--surface-option-bg);
   color: var(--surface-text);
+}
+
+.hero-gradient-title {
+  background: linear-gradient(92deg, #ffffff 0%, #8fffc2 42%, #5ceca0 70%, #d9ffe9 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: title-shimmer 9s linear infinite;
+}
+
+.animated-chip {
+  position: relative;
+  overflow: hidden;
+}
+
+.animated-chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  transform: translateX(-120%);
+  animation: chip-sheen 4s ease-in-out infinite;
+}
+
+@keyframes title-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes chip-sheen {
+  0%,
+  20% {
+    transform: translateX(-120%);
+  }
+  45%,
+  100% {
+    transform: translateX(120%);
+  }
 }

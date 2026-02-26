@@ -195,9 +195,12 @@ export async function GET() {
       video: normalizeVideo(item.video || "")
     }));
 
-  const finalHighlights = landingConfig.feed?.useManualFeed && manualHighlights.length ? manualHighlights : highlights;
-  const finalFixtures = landingConfig.feed?.useManualFeed && manualFixtures.length ? manualFixtures : fixtures;
-  const finalVideoZone = landingConfig.feed?.useManualFeed && manualVideoZone.length ? manualVideoZone : [];
+  const useManualByPresence =
+    manualHighlights.length > 0 || manualFixtures.length > 0 || manualVideoZone.length > 0;
+  const shouldUseManual = Boolean(landingConfig.feed?.useManualFeed) || useManualByPresence;
+  const finalHighlights = shouldUseManual && manualHighlights.length ? manualHighlights : highlights;
+  const finalFixtures = shouldUseManual && manualFixtures.length ? manualFixtures : fixtures;
+  const finalVideoZone = shouldUseManual && manualVideoZone.length ? manualVideoZone : [];
 
   return NextResponse.json({
     updatedAt: new Date().toISOString(),
@@ -214,7 +217,9 @@ export async function GET() {
       thumbnailUrl: m.thumbnailUrl || "",
       linkUrl: m.linkUrl || "",
       placement: m.placement,
-      order: m.order
+      order: m.order,
+      colSpan: m.colSpan || 1,
+      cardHeight: m.cardHeight || 220
     }))
   });
 }
