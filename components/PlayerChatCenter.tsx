@@ -50,6 +50,7 @@ export default function PlayerChatCenter() {
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState("");
+  const [initialMessageLoaded, setInitialMessageLoaded] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const selectedConversation = useMemo(
@@ -81,13 +82,25 @@ export default function PlayerChatCenter() {
     }
   }
 
-  async function loadMessages(conversationId: string) {
-    setLoadingMessages(true);
+  async function loadMessages(conversationId: string, options?: { silent?: boolean }) {
+    const silent = Boolean(options?.silent);
+    if (!silent && !initialMessageLoaded) {
+      setLoadingMessages(true);
+    }
     const res = await fetch(`/api/chat/conversations/${conversationId}/messages`, { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
-    setLoadingMessages(false);
+    if (!silent && !initialMessageLoaded) {
+      setLoadingMessages(false);
+      setInitialMessageLoaded(true);
+    }
     if (!res.ok) throw new Error(data?.message || "Could not load messages.");
-    setMessages(data.messages || []);
+    const next = data.messages || [];
+    setMessages((prev) => {
+      if (prev.length === next.length && prev[prev.length - 1]?.id === next[next.length - 1]?.id) {
+        return prev;
+      }
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -110,9 +123,10 @@ export default function PlayerChatCenter() {
 
   useEffect(() => {
     if (!selectedConversationId) return;
-    loadMessages(selectedConversationId).catch((e) => setError(String(e?.message || "Could not load messages.")));
+    setInitialMessageLoaded(false);
+    loadMessages(selectedConversationId, { silent: false }).catch((e) => setError(String(e?.message || "Could not load messages.")));
     const timer = setInterval(() => {
-      loadMessages(selectedConversationId).catch(() => null);
+      loadMessages(selectedConversationId, { silent: true }).catch(() => null);
     }, 3000);
     return () => clearInterval(timer);
   }, [selectedConversationId]);
@@ -223,7 +237,7 @@ export default function PlayerChatCenter() {
   }
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
+    <section className="grid gap-4 lg:grid-cols-[360px_1fr]">
       <div className="space-y-4">
         <div className="glass-panel p-4">
           <h2 className="font-display text-2xl text-white">Player Chat Requests</h2>
@@ -292,23 +306,55 @@ export default function PlayerChatCenter() {
             {!players.length ? <p className="text-sm text-white/70">No players available.</p> : null}
           </div>
         </div>
+
+        <div className="glass-panel p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-pitch-200">Active Conversations</h3>
+          <div className="mt-3 max-h-[220px] space-y-2 overflow-auto pr-1">
+            {conversations.map((conv) => (
+              <button
+                key={conv.id}
+                type="button"
+                onClick={() => setSelectedConversationId(conv.id)}
+                className={`w-full rounded-xl border p-3 text-left transition ${
+                  selectedConversationId === conv.id
+                    ? "border-pitch-300/45 bg-pitch-300/10"
+                    : "border-white/12 bg-white/5 hover:bg-white/10"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="truncate text-sm font-semibold text-white">{conv.peer.name}</p>
+                  {conv.unreadCount > 0 ? (
+                    <span className="rounded-full bg-rose-500/85 px-2 py-0.5 text-[10px] font-semibold text-white">{conv.unreadCount}</span>
+                  ) : null}
+                </div>
+                <p className="mt-1 truncate text-xs text-white/70">
+                  {conv.lastMessage?.text || conv.lastMessage?.linkUrl || (conv.lastMessage?.imageUrl ? "Sent an image" : "No messages yet")}
+                </p>
+              </button>
+            ))}
+            {!conversations.length ? <p className="text-sm text-white/70">No active conversations.</p> : null}
+          </div>
+        </div>
       </div>
 
-      <div className="glass-panel flex min-h-[620px] flex-col p-4">
-        <div className="border-b border-white/10 pb-3">
+      <div className="glass-panel relative flex min-h-[680px] flex-col overflow-hidden p-0">
+        <div className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-pitch-300/20 blur-3xl" />
+        <div className="border-b border-white/10 bg-white/[0.04] p-4 md:p-5">
           <p className="text-xs uppercase tracking-[0.14em] text-pitch-200">Chat Room</p>
-          <h3 className="text-xl font-semibold text-white">{selectedConversation?.peer?.name || "Select a conversation"}</h3>
-          <p className="text-xs text-white/70">{selectedConversation?.peer?.headline || "Accepted requests appear here."}</p>
+          <h3 className="font-display text-3xl leading-none text-white">{selectedConversation?.peer?.name || "Select A Conversation"}</h3>
+          <p className="mt-1 text-xs text-white/70">{selectedConversation?.peer?.headline || "Accepted requests appear here."}</p>
         </div>
 
-        <div className="mt-3 flex-1 space-y-2 overflow-auto pr-1">
-          {loadingMessages ? <p className="text-sm text-white/70">Loading messages...</p> : null}
+        <div className="mt-0 flex-1 space-y-2 overflow-auto bg-[linear-gradient(180deg,rgba(12,22,42,0.1),rgba(7,12,26,0.5))] p-4 pr-2 md:p-5 md:pr-3">
+          {loadingMessages ? <p className="text-sm text-white/70">Loading chat...</p> : null}
           {!selectedConversationId ? <p className="text-sm text-white/70">Open or accept a chat to start messaging.</p> : null}
           {selectedConversationId && !messages.length ? <p className="text-sm text-white/70">No messages yet.</p> : null}
           {messages.map((m) => (
             <div
               key={m.id}
-              className={`max-w-[86%] rounded-xl border p-3 ${m.isMine ? "ml-auto border-pitch-300/40 bg-pitch-300/10" : "border-white/15 bg-white/5"}`}
+              className={`max-w-[86%] rounded-2xl border p-3 shadow-[0_8px_20px_rgba(0,0,0,0.2)] ${
+                m.isMine ? "ml-auto border-pitch-300/40 bg-pitch-300/12" : "border-white/15 bg-white/[0.06]"
+              }`}
             >
               {m.text ? <p className="text-sm text-white">{m.text}</p> : null}
               {m.linkUrl ? (
@@ -327,7 +373,7 @@ export default function PlayerChatCenter() {
           <div ref={endRef} />
         </div>
 
-        <form onSubmit={onSendMessage} className="mt-3 space-y-2 border-t border-white/10 pt-3">
+        <form onSubmit={onSendMessage} className="space-y-2 border-t border-white/10 bg-white/[0.03] p-3 md:p-4">
           <textarea
             className="input min-h-20"
             placeholder="Write your update..."
@@ -370,7 +416,7 @@ export default function PlayerChatCenter() {
                 </button>
               </div>
             ) : (
-              <p className="text-xs text-white/65">Add media (max 10 MB, auto-limited to 720p)</p>
+              <p className="text-xs text-white/65">Add media (max 10 MB, auto 720p)</p>
             )}
           </div>
           <button className="btn-primary w-full justify-center" disabled={!selectedConversationId || sending || uploading}>
