@@ -259,13 +259,13 @@ export default function EcbHubPage() {
 
   return (
     <main className="container-page relative pb-16">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_20%,rgba(65,132,255,0.35),transparent_30%),radial-gradient(circle_at_88%_10%,rgba(255,91,91,0.25),transparent_30%),linear-gradient(130deg,#0a1024_0%,#11193a_52%,#0c1127_100%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_20%,rgba(29,196,107,0.28),transparent_30%),radial-gradient(circle_at_88%_10%,rgba(243,255,247,0.10),transparent_30%),linear-gradient(130deg,#021108_0%,#083721_52%,#03110a_100%)]" />
 
       <section className="glass-panel relative overflow-hidden p-6 md:p-8">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#58a9ff]/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 left-16 h-64 w-64 rounded-full bg-[#ff6363]/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-pitch-300/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 left-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
 
-        <p className="text-xs uppercase tracking-[0.2em] text-[#9bc8ff]">Elite Player Hub</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Elite Player Hub</p>
         <h1 className="mt-2 text-4xl font-black tracking-tight text-white md:text-6xl">Lightforce Hub</h1>
         <p className="mt-3 max-w-3xl text-white/75">
           Premium player discovery, side-by-side comparison, and a live timeline where players publish achievements and match updates.
@@ -311,10 +311,10 @@ export default function EcbHubPage() {
               className="group glass-panel relative overflow-hidden p-0"
               style={{ transformStyle: "preserve-3d" }}
             >
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(88,169,255,0.35),rgba(26,33,77,0.28)_42%,rgba(9,15,33,0.35))]" />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(37,199,111,0.28),rgba(7,29,18,0.34)_42%,rgba(3,12,8,0.35))]" />
 
               <div className="relative border-b border-white/10">
-                <div className="aspect-[4/3] overflow-hidden bg-[#0c1531]">
+                <div className="aspect-[4/3] overflow-hidden bg-[#0a1811]">
                   {(player.profilePhoto || player.photos?.[0]) ? (
                     <button
                       type="button"
@@ -338,7 +338,7 @@ export default function EcbHubPage() {
                     <div className="flex h-full w-full items-center justify-center text-sm text-white/55">No photo</div>
                   )}
                 </div>
-                <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/45 px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-[#9bc8ff] backdrop-blur">
+                <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/45 px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-pitch-200 backdrop-blur">
                   {player.availableNow ? "Available Now" : "Busy"}
                 </div>
               </div>
@@ -365,7 +365,7 @@ export default function EcbHubPage() {
 
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-xs text-white/60">{player.heightCm} cm | {player.weightKg} kg</p>
-                  <Link href={`/players/${player.slug}`} className="text-sm font-medium text-[#9bc8ff] underline underline-offset-4">
+                  <Link href={`/players/${player.slug}`} className="text-sm font-medium text-pitch-200 underline underline-offset-4">
                     View Profile
                   </Link>
                 </div>
@@ -377,7 +377,7 @@ export default function EcbHubPage() {
 
       {compareOpen ? (
         <section className="glass-panel mt-8 p-5 md:p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#9bc8ff]">Compare Engine</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Compare Engine</p>
           <h2 className="mt-2 text-2xl font-bold text-white">Select Players For Comparison</h2>
 
           <div className="mt-4 grid gap-3 md:grid-cols-5">
@@ -394,7 +394,7 @@ export default function EcbHubPage() {
               return (
                 <label
                   key={`pick-${player.id}`}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 ${selected ? "border-[#9bc8ff]/60 bg-[#9bc8ff]/10" : "border-white/10 bg-white/5"}`}
+                  className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 ${selected ? "border-pitch-300/60 bg-pitch-300/10" : "border-white/10 bg-white/5"}`}
                 >
                   <span className="text-sm text-white">{player.name} <span className="text-white/60">({player.age})</span></span>
                   <input type="checkbox" checked={selected} disabled={disableAdd} onChange={() => toggleSelection(player.id)} />
@@ -451,7 +451,7 @@ export default function EcbHubPage() {
 
       <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_1.25fr]">
         <div className="glass-panel p-5 md:p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#9bc8ff]">Player Timeline</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Player Timeline</p>
           <h2 className="mt-2 text-2xl font-bold text-white">Post Current Updates</h2>
 
           {canPost ? (
@@ -503,7 +503,7 @@ export default function EcbHubPage() {
         <div className="glass-panel p-5 md:p-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-[#9bc8ff]">Live Feed</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Live Feed</p>
               <h2 className="mt-1 text-2xl font-bold text-white">All Player Updates</h2>
             </div>
           </div>
@@ -525,14 +525,14 @@ export default function EcbHubPage() {
                     {post.author.profilePhoto ? (
                       <img src={post.author.profilePhoto} alt={post.author.name} className="h-9 w-9 rounded-full object-cover" style={avatarStyle(post.author.profilePhotoMeta)} />
                     ) : (
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#9bc8ff] text-black">{post.author.name.slice(0, 1).toUpperCase()}</span>
+                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-pitch-300 text-black">{post.author.name.slice(0, 1).toUpperCase()}</span>
                     )}
                     <div>
                       <p className="text-sm font-medium text-white">{post.author.name}</p>
                       <p className="text-xs text-white/60">{formatDateTime(post.createdAt)}</p>
                     </div>
                   </div>
-                  <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-[#9bc8ff]">
+                  <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-pitch-200">
                     {post.type.replace("_", " ")}
                   </span>
                 </div>
@@ -551,7 +551,7 @@ export default function EcbHubPage() {
                 ) : null}
 
                 {post.author.slug ? (
-                  <Link href={`/players/${post.author.slug}`} className="mt-3 inline-block text-xs text-[#9bc8ff] underline underline-offset-4">
+                  <Link href={`/players/${post.author.slug}`} className="mt-3 inline-block text-xs text-pitch-200 underline underline-offset-4">
                     View Player Profile
                   </Link>
                 ) : null}
@@ -584,7 +584,7 @@ export default function EcbHubPage() {
               <img src={previewImage.src} alt={previewImage.title} className="max-h-[78vh] w-full object-contain bg-black/30" />
               <div className="border-t border-white/10 p-4">
                 <p className="text-base font-semibold text-white">{previewImage.title}</p>
-                {previewImage.subtitle ? <p className="mt-1 text-xs text-[#9bc8ff]">{previewImage.subtitle}</p> : null}
+                {previewImage.subtitle ? <p className="mt-1 text-xs text-pitch-200">{previewImage.subtitle}</p> : null}
               </div>
             </motion.div>
           </motion.div>
@@ -611,7 +611,7 @@ function Bar({ label, value, max }: { label: string; value: number; max: number 
         <span>{value}</span>
       </div>
       <div className="h-2 rounded-full bg-white/10">
-        <div className="h-2 rounded-full bg-[#75b8ff] transition-all" style={{ width: `${Math.max(4, (value / max) * 100)}%` }} />
+        <div className="h-2 rounded-full bg-pitch-300 transition-all" style={{ width: `${Math.max(4, (value / max) * 100)}%` }} />
       </div>
     </div>
   );
