@@ -44,8 +44,8 @@ const landingConfigSchema = z.object({
         id: z.string().min(1).max(80),
         title: z.string().min(2).max(140),
         league: z.string().min(2).max(120),
-        date: z.string().min(1).max(30),
-        time: z.string().min(1).max(30),
+        date: z.string().max(30).optional().or(z.literal("")),
+        time: z.string().max(30).optional().or(z.literal("")),
         thumb: z.string().url().or(z.literal("")),
         video: z.string().url().or(z.literal("")),
         isActive: z.boolean(),
@@ -57,8 +57,8 @@ const landingConfigSchema = z.object({
         id: z.string().min(1).max(80),
         event: z.string().min(2).max(140),
         league: z.string().min(2).max(120),
-        date: z.string().min(1).max(30),
-        time: z.string().min(1).max(30),
+        date: z.string().max(30).optional().or(z.literal("")),
+        time: z.string().max(30).optional().or(z.literal("")),
         isActive: z.boolean(),
         publishAt: z.string().datetime().optional().or(z.literal(""))
       })

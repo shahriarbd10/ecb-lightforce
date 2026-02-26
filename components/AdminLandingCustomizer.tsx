@@ -121,6 +121,17 @@ export default function AdminLandingCustomizer() {
     return local.toISOString().slice(0, 16);
   }
 
+  function localToDateTime(value: string) {
+    if (!value) return { iso: "", date: "", time: "" };
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return { iso: "", date: "", time: "" };
+    return {
+      iso: d.toISOString(),
+      date: d.toISOString().slice(0, 10),
+      time: d.toISOString().slice(11, 19)
+    };
+  }
+
   return (
     <section className="glass-panel overflow-hidden">
       <div className="border-b border-white/10 bg-black/20 px-5 py-4">
@@ -386,32 +397,21 @@ export default function AdminLandingCustomizer() {
                         }
                       />
                       <input
-                        className="input"
-                        placeholder="Date (YYYY-MM-DD)"
-                        value={item.date}
-                        onChange={(e) =>
+                        className="input md:col-span-2"
+                        type="datetime-local"
+                        value={isoToLocalInput(item.publishAt)}
+                        onChange={(e) => {
+                          const next = localToDateTime(e.target.value);
                           setConfig((prev) => ({
                             ...prev,
                             feed: {
                               ...prev.feed,
-                              highlights: prev.feed.highlights.map((h) => (h.id === item.id ? { ...h, date: e.target.value } : h))
+                              highlights: prev.feed.highlights.map((h) =>
+                                h.id === item.id ? { ...h, publishAt: next.iso, date: next.date, time: next.time } : h
+                              )
                             }
-                          }))
-                        }
-                      />
-                      <input
-                        className="input"
-                        placeholder="Time (HH:mm:ss)"
-                        value={item.time}
-                        onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            feed: {
-                              ...prev.feed,
-                              highlights: prev.feed.highlights.map((h) => (h.id === item.id ? { ...h, time: e.target.value } : h))
-                            }
-                          }))
-                        }
+                          }));
+                        }}
                       />
                       <input
                         className="input md:col-span-2"
@@ -437,22 +437,6 @@ export default function AdminLandingCustomizer() {
                             feed: {
                               ...prev.feed,
                               highlights: prev.feed.highlights.map((h) => (h.id === item.id ? { ...h, video: e.target.value } : h))
-                            }
-                          }))
-                        }
-                      />
-                      <input
-                        className="input"
-                        type="datetime-local"
-                        value={isoToLocalInput(item.publishAt)}
-                        onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            feed: {
-                              ...prev.feed,
-                              highlights: prev.feed.highlights.map((h) =>
-                                h.id === item.id ? { ...h, publishAt: toIso(e.target.value) } : h
-                              )
                             }
                           }))
                         }
@@ -551,48 +535,21 @@ export default function AdminLandingCustomizer() {
                         }
                       />
                       <input
-                        className="input"
-                        placeholder="Date (YYYY-MM-DD)"
-                        value={item.date}
-                        onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            feed: {
-                              ...prev.feed,
-                              fixtures: prev.feed.fixtures.map((f) => (f.id === item.id ? { ...f, date: e.target.value } : f))
-                            }
-                          }))
-                        }
-                      />
-                      <input
-                        className="input"
-                        placeholder="Time (HH:mm:ss)"
-                        value={item.time}
-                        onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            feed: {
-                              ...prev.feed,
-                              fixtures: prev.feed.fixtures.map((f) => (f.id === item.id ? { ...f, time: e.target.value } : f))
-                            }
-                          }))
-                        }
-                      />
-                      <input
-                        className="input"
+                        className="input md:col-span-2"
                         type="datetime-local"
                         value={isoToLocalInput(item.publishAt)}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const next = localToDateTime(e.target.value);
                           setConfig((prev) => ({
                             ...prev,
                             feed: {
                               ...prev.feed,
                               fixtures: prev.feed.fixtures.map((f) =>
-                                f.id === item.id ? { ...f, publishAt: toIso(e.target.value) } : f
+                                f.id === item.id ? { ...f, publishAt: next.iso, date: next.date, time: next.time } : f
                               )
                             }
-                          }))
-                        }
+                          }));
+                        }}
                       />
                       <label className="inline-flex items-center gap-2 text-sm text-white/85">
                         <input

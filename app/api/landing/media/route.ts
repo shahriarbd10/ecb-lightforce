@@ -81,6 +81,22 @@ function isPublished(publishAt?: string) {
   return ts <= Date.now();
 }
 
+function pickDateTime(date?: string, time?: string, publishAt?: string) {
+  if (date || time) {
+    return { date: date || "", time: time || "" };
+  }
+  if (publishAt) {
+    const d = new Date(publishAt);
+    if (!Number.isNaN(d.getTime())) {
+      return {
+        date: d.toISOString().slice(0, 10),
+        time: d.toISOString().slice(11, 19)
+      };
+    }
+  }
+  return { date: "", time: "" };
+}
+
 export async function GET() {
   const today = new Date().toISOString().slice(0, 10);
   const highlightsUrl = `https://www.thesportsdb.com/api/v1/json/123/eventshighlights.php?d=${today}&s=Soccer`;
@@ -141,25 +157,31 @@ export async function GET() {
 
   const manualHighlights = (landingConfig.feed?.highlights || [])
     .filter((item: any) => item?.isActive !== false && isPublished(item?.publishAt))
-    .map((item: any, index: number) => ({
-      id: item.id || `mh-${index}`,
-      title: item.title || "Football Highlight",
-      league: item.league || "ECB Lightforce",
-      date: item.date || "",
-      time: item.time || "",
-      thumb: item.thumb || "",
-      video: normalizeVideo(item.video || "")
-    }));
+    .map((item: any, index: number) => {
+      const dt = pickDateTime(item.date, item.time, item.publishAt);
+      return {
+        id: item.id || `mh-${index}`,
+        title: item.title || "Football Highlight",
+        league: item.league || "ECB Lightforce",
+        date: dt.date,
+        time: dt.time,
+        thumb: item.thumb || "",
+        video: normalizeVideo(item.video || "")
+      };
+    });
 
   const manualFixtures = (landingConfig.feed?.fixtures || [])
     .filter((item: any) => item?.isActive !== false && isPublished(item?.publishAt))
-    .map((item: any, index: number) => ({
-      id: item.id || `mf-${index}`,
-      event: item.event || "Upcoming Match",
-      league: item.league || "Football",
-      date: item.date || "",
-      time: item.time || ""
-    }));
+    .map((item: any, index: number) => {
+      const dt = pickDateTime(item.date, item.time, item.publishAt);
+      return {
+        id: item.id || `mf-${index}`,
+        event: item.event || "Upcoming Match",
+        league: item.league || "Football",
+        date: dt.date,
+        time: dt.time
+      };
+    });
 
   const manualVideoZone = (landingConfig.feed?.videoZone || [])
     .filter((item: any) => item?.isActive !== false && isPublished(item?.publishAt))
