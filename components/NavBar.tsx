@@ -10,6 +10,7 @@ export default function NavBar() {
   const [avatar, setAvatar] = useState("");
   const [avatarMeta, setAvatarMeta] = useState({ x: 50, y: 50, zoom: 1 });
   const [menuOpen, setMenuOpen] = useState(false);
+  const [chatHasUnread, setChatHasUnread] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -44,6 +45,36 @@ export default function NavBar() {
   useEffect(() => {
     setMenuOpen(false);
   }, [status, session?.user?.id]);
+
+  useEffect(() => {
+    let mounted = true;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    async function loadChatAlerts() {
+      if (!session?.user || session.user.role !== "player") {
+        if (mounted) setChatHasUnread(false);
+        return;
+      }
+      try {
+        const res = await fetch("/api/chat/alerts", { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (mounted && res.ok) {
+          setChatHasUnread(Boolean(data?.hasUnread));
+        }
+      } catch {
+        if (mounted) setChatHasUnread(false);
+      }
+    }
+
+    loadChatAlerts();
+    if (session?.user?.role === "player") {
+      timer = setInterval(loadChatAlerts, 5000);
+    }
+    return () => {
+      mounted = false;
+      if (timer) clearInterval(timer);
+    };
+  }, [session?.user?.id, session?.user?.role]);
 
   const isLoggedIn = status === "authenticated" && !!session?.user;
   const userName = session?.user?.name || "Player";
@@ -80,8 +111,9 @@ export default function NavBar() {
                 Dashboard
               </Link>
               {session?.user?.role === "player" ? (
-                <Link href="/chat" className="rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
+                <Link href="/chat" className="relative rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
                   Chat
+                  {chatHasUnread ? <span className="absolute -right-0.5 top-1.5 h-2.5 w-2.5 rounded-full bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.75)]" /> : null}
                 </Link>
               ) : null}
               <button
@@ -137,8 +169,9 @@ export default function NavBar() {
                   Dashboard
                 </Link>
                 {session?.user?.role === "player" ? (
-                  <Link href="/chat" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
+                  <Link href="/chat" className="relative rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
                     Chat
+                    {chatHasUnread ? <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.75)]" /> : null}
                   </Link>
                 ) : null}
                 <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">

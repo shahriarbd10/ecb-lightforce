@@ -49,6 +49,7 @@ export default function PlayerChatCenter() {
   const [sendImage, setSendImage] = useState("");
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState("");
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const selectedConversation = useMemo(
@@ -316,9 +317,9 @@ export default function PlayerChatCenter() {
                 </a>
               ) : null}
               {m.imageUrl ? (
-                <a href={m.imageUrl} target="_blank" rel="noreferrer">
-                  <img src={m.imageUrl} alt="Shared media" className="mt-2 max-h-[300px] w-full rounded-lg object-cover" />
-                </a>
+                <button type="button" className="mt-2 block" onClick={() => setPreviewImageUrl(m.imageUrl)}>
+                  <img src={m.imageUrl} alt="Shared media" className="h-36 w-52 rounded-lg border border-white/15 object-cover transition hover:opacity-90" />
+                </button>
               ) : null}
               <p className="mt-1 text-[10px] text-white/60">{new Date(m.createdAt).toLocaleString()}</p>
             </div>
@@ -341,12 +342,9 @@ export default function PlayerChatCenter() {
             onChange={(e) => setSendLink(e.target.value)}
             disabled={!selectedConversationId || sending}
           />
-          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-            <div className="input flex items-center justify-between">
-              <span className="truncate text-xs text-white/70">{sendImage || "Upload image (max 10 MB, auto-limited to 720p)"}</span>
-            </div>
-            <label className="btn-muted cursor-pointer justify-center text-sm">
-              {uploading ? "Uploading..." : "Upload Image"}
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-white/10 text-white">
+              {uploading ? "..." : <MediaIcon />}
               <input
                 type="file"
                 accept="image/*"
@@ -359,6 +357,21 @@ export default function PlayerChatCenter() {
                 }}
               />
             </label>
+            {sendImage ? (
+              <div className="relative overflow-hidden rounded-lg border border-white/15">
+                <img src={sendImage} alt="Pending upload" className="h-16 w-24 object-cover" />
+                <button
+                  type="button"
+                  className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/65 text-xs text-white"
+                  onClick={() => setSendImage("")}
+                  aria-label="Remove image"
+                >
+                  x
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-white/65">Add media (max 10 MB, auto-limited to 720p)</p>
+            )}
           </div>
           <button className="btn-primary w-full justify-center" disabled={!selectedConversationId || sending || uploading}>
             {sending ? "Sending..." : "Send Message"}
@@ -366,9 +379,29 @@ export default function PlayerChatCenter() {
         </form>
       </div>
 
+      {previewImageUrl ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+          onClick={() => setPreviewImageUrl("")}
+        >
+          <div className="glass-panel max-h-[90vh] max-w-4xl overflow-hidden p-2" onClick={(e) => e.stopPropagation()}>
+            <img src={previewImageUrl} alt="Chat media preview" className="max-h-[84vh] w-auto max-w-full rounded-xl object-contain" />
+          </div>
+        </div>
+      ) : null}
+
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
       {note ? <p className="text-sm text-pitch-200">{note}</p> : null}
     </section>
   );
 }
 
+function MediaIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5v-9Z" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M8 15l2.5-2.5L13 15l1.5-1.5L17 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="9" cy="9.5" r="1.1" fill="currentColor" />
+    </svg>
+  );
+}
