@@ -20,6 +20,8 @@ type Conversation = {
   peer: PlayerSummary;
   unreadCount: number;
   updatedAt: string;
+  activeNow?: boolean;
+  lastActiveAt?: string;
   lastMessage: { text: string; linkUrl: string; imageUrl: string; createdAt: string } | null;
 };
 
@@ -30,6 +32,7 @@ type ChatMessage = {
   imageUrl: string;
   createdAt: string;
   isMine: boolean;
+  seen?: boolean;
 };
 
 type RequestItem = { id: string; from?: PlayerSummary; to?: PlayerSummary };
@@ -342,7 +345,9 @@ export default function PlayerChatCenter() {
         <div className="border-b border-white/10 bg-white/[0.04] p-4 md:p-5">
           <p className="text-xs uppercase tracking-[0.14em] text-pitch-200">Chat Room</p>
           <h3 className="font-display text-3xl leading-none text-white">{selectedConversation?.peer?.name || "Select A Conversation"}</h3>
-          <p className="mt-1 text-xs text-white/70">{selectedConversation?.peer?.headline || "Accepted requests appear here."}</p>
+          <p className="mt-1 text-xs text-white/70">
+            {selectedConversation?.activeNow ? "Active now" : selectedConversation?.lastActiveAt ? `Last active ${formatChatTime(selectedConversation.lastActiveAt)}` : selectedConversation?.peer?.headline || "Accepted requests appear here."}
+          </p>
         </div>
 
         <div className="mt-0 flex-1 space-y-2 overflow-auto bg-[linear-gradient(180deg,rgba(12,22,42,0.1),rgba(7,12,26,0.5))] p-4 pr-2 md:p-5 md:pr-3">
@@ -367,7 +372,10 @@ export default function PlayerChatCenter() {
                   <img src={m.imageUrl} alt="Shared media" className="h-36 w-52 rounded-lg border border-white/15 object-cover transition hover:opacity-90" />
                 </button>
               ) : null}
-              <p className="mt-1 text-[10px] text-white/60">{new Date(m.createdAt).toLocaleString()}</p>
+              <p className="mt-1 text-[10px] text-white/60">
+                {formatChatTime(m.createdAt)}
+                {m.isMine ? ` · ${m.seen ? "Seen" : "Unseen"}` : ""}
+              </p>
             </div>
           ))}
           <div ref={endRef} />
@@ -440,6 +448,19 @@ export default function PlayerChatCenter() {
       {note ? <p className="text-sm text-pitch-200">{note}</p> : null}
     </section>
   );
+}
+
+function formatChatTime(input: string) {
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return input;
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  });
 }
 
 function MediaIcon() {

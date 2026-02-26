@@ -480,7 +480,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
           <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.videoEyebrow}</p>
           <h3 className="font-display mt-2 text-4xl text-white md:text-5xl">{content.labels.videoTitle}</h3>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-flow-row-dense gap-4 md:grid-cols-2">
           {topVideos.length ? (
             topVideos.map((video) => (
               <div key={video.id} className="glass-panel overflow-hidden p-0">
@@ -526,8 +526,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
             managedSpotlight.map((item) => (
               <article
                 key={item.id}
-                className="glass-panel overflow-hidden p-0"
-                style={{ gridColumn: `span ${Math.max(1, Math.min(2, item.colSpan || 1))} / span ${Math.max(1, Math.min(2, item.colSpan || 1))}` }}
+                className={`glass-panel overflow-hidden p-0 ${sectionSpanClass("spotlight", item.colSpan || 1)}`}
               >
                 <ManagedMediaPreview item={item} className="w-full" height={item.cardHeight || 280} />
                 <div className="p-4">
@@ -551,15 +550,14 @@ export default function LandingSections({ previewData = null, previewMode = fals
           <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.reelsEyebrow}</p>
           <h3 className="font-display mt-2 text-4xl text-white md:text-5xl">{content.labels.reelsTitle}</h3>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-flow-row-dense gap-4 md:grid-cols-2 lg:grid-cols-3">
           {managedReels.length === 0 ? (
             <div className="glass-panel col-span-full p-5 text-sm text-white/70">No reels published yet.</div>
           ) : (
             managedReels.map((item) => (
               <article
                 key={item.id}
-                className="glass-panel overflow-hidden p-0"
-                style={{ gridColumn: `span ${Math.max(1, Math.min(3, item.colSpan || 1))} / span ${Math.max(1, Math.min(3, item.colSpan || 1))}` }}
+                className={`glass-panel overflow-hidden p-0 ${sectionSpanClass("reels", item.colSpan || 1)}`}
               >
                 <ManagedMediaPreview item={item} className="w-full" height={item.cardHeight || 220} />
                 <div className="p-4">
@@ -588,15 +586,14 @@ export default function LandingSections({ previewData = null, previewMode = fals
           <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.adsEyebrow}</p>
           <h3 className="font-display mt-2 text-4xl text-white md:text-5xl">{content.labels.adsTitle}</h3>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-flow-row-dense gap-4 md:grid-cols-2 lg:grid-cols-3">
           {managedAds.length === 0 ? (
             <div className="glass-panel col-span-full p-5 text-sm text-white/70">No admin media published yet.</div>
           ) : (
             managedAds.map((item) => (
               <article
                 key={item.id}
-                className="glass-panel overflow-hidden p-0"
-                style={{ gridColumn: `span ${Math.max(1, Math.min(3, item.colSpan || 1))} / span ${Math.max(1, Math.min(3, item.colSpan || 1))}` }}
+                className={`glass-panel overflow-hidden p-0 ${sectionSpanClass("ads", item.colSpan || 1)}`}
               >
                 <ManagedMediaPreview item={item} className="w-full" height={item.cardHeight || 200} />
                 <div className="p-4">
@@ -936,6 +933,16 @@ function normalizeDateKey(date?: string) {
     const d = String(Number(mdY[2])).padStart(2, "0");
     return `${mdY[3]}-${m}-${d}`;
   }
+  return "";
+}
+
+function sectionSpanClass(section: "spotlight" | "reels" | "ads", spanRaw: number) {
+  const span = Math.max(1, Math.floor(spanRaw || 1));
+  if (section === "spotlight") {
+    return span >= 2 ? "md:col-span-2" : "";
+  }
+  if (span >= 3) return "md:col-span-2 lg:col-span-3";
+  if (span === 2) return "md:col-span-2";
   return "";
 }
 

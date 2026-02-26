@@ -36,6 +36,7 @@ export default function LiveFeedPage() {
   });
   const [saving, setSaving] = useState(false);
   const [commentText, setCommentText] = useState<Record<string, string>>({});
+  const [previewImage, setPreviewImage] = useState<{ src: string; title: string } | null>(null);
 
   const canPost = status === "authenticated" && session?.user?.role === "player";
 
@@ -195,7 +196,7 @@ export default function LiveFeedPage() {
         </section>
       )}
 
-      <section className="mt-4 space-y-4">
+      <section className="mt-4 max-h-[72vh] space-y-4 overflow-y-auto pr-1 md:pr-2">
         {loading ? <p className="text-white/75">Loading live feed...</p> : null}
         {!loading && error ? <p className="text-red-300">{error}</p> : null}
         {!loading && !posts.length ? <p className="text-white/75">No posts yet.</p> : null}
@@ -219,14 +220,23 @@ export default function LiveFeedPage() {
 
             <h2 className="mt-3 text-lg font-semibold text-white">{post.title}</h2>
             <p className="mt-1 whitespace-pre-wrap text-sm text-white/85">{post.content}</p>
-            {post.image ? <img src={post.image} alt={post.title} className="mt-3 h-[320px] w-full rounded-xl border border-white/10 object-cover" /> : null}
+            {post.image ? (
+              <button
+                type="button"
+                className="mt-3 block w-full overflow-hidden rounded-xl border border-white/10 bg-black/20"
+                onClick={() => setPreviewImage({ src: post.image || "", title: post.title })}
+              >
+                <img src={post.image} alt={post.title} className="h-auto max-h-[520px] w-full object-contain" />
+              </button>
+            ) : null}
 
             <div className="mt-3 flex items-center gap-4 border-y border-white/10 py-2 text-sm">
-              <button className={`rounded-full px-3 py-1 ${post.likedByMe ? "bg-pitch-300/20 text-pitch-200" : "bg-white/5 text-white/80"}`} onClick={() => toggleLike(post.id)}>
-                Like ({post.likeCount})
+              <button className={`inline-flex items-center gap-1 rounded-full px-3 py-1 ${post.likedByMe ? "bg-pitch-300/20 text-pitch-200" : "bg-white/5 text-white/80"}`} onClick={() => toggleLike(post.id)}>
+                <LikeIcon />
+                {post.likeCount}
               </button>
-              <span className="text-white/70">Comments ({post.commentCount})</span>
-              {post.author.slug ? <Link href={`/players/${post.author.slug}`} className="text-pitch-200 underline">Profile</Link> : null}
+              <span className="inline-flex items-center gap-1 text-white/70"><CommentIcon /> {post.commentCount}</span>
+              {post.author.slug ? <Link href={`/players/${post.author.slug}`} className="inline-flex items-center gap-1 text-pitch-200 underline"><UserIcon /> Profile</Link> : null}
             </div>
 
             <div className="mt-3 space-y-2">
@@ -254,6 +264,14 @@ export default function LiveFeedPage() {
           </article>
         ))}
       </section>
+
+      {previewImage ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" onClick={() => setPreviewImage(null)}>
+          <div className="glass-panel max-h-[90vh] max-w-5xl overflow-hidden p-2" onClick={(e) => e.stopPropagation()}>
+            <img src={previewImage.src} alt={previewImage.title} className="max-h-[84vh] w-auto max-w-full rounded-xl object-contain" />
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
@@ -277,3 +295,27 @@ function formatDateTime(input: string) {
   });
 }
 
+function LikeIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M8 10v10H4V10h4Zm12 .5c0-1.1-.9-2-2-2h-5l.6-2.8.02-.2a1 1 0 0 0-.29-.71L12 3 6.6 8.4A2 2 0 0 0 6 9.8V18a2 2 0 0 0 2 2h7.6c.8 0 1.5-.47 1.84-1.2l2.58-5.7c.07-.18.11-.39.11-.6v-2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function CommentIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 5h14v10H8l-3 3V5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M5 19a7 7 0 0 1 14 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}

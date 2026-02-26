@@ -79,6 +79,8 @@ export async function GET() {
               profilePhoto: profile?.profilePhoto || profile?.photos?.[0] || "",
               profilePhotoMeta: profile?.profilePhotoMeta || { x: 50, y: 50, zoom: 1 }
             },
+            activeNow: Boolean(c.lastMessageAt && Date.now() - new Date(c.lastMessageAt).getTime() < 5 * 60 * 1000),
+            lastActiveAt: c.lastMessageAt || c.updatedAt,
             lastMessage: last
               ? {
                   text: last.text || "",

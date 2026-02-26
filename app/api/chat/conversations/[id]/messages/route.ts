@@ -28,8 +28,9 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
     await connectToDatabase();
     const myUserId = guard.userId;
     const myObjectId = new Types.ObjectId(myUserId);
-    const conversation = await ChatConversation.findOne({ _id: id, members: myUserId }).select("_id").lean();
+    const conversation = await ChatConversation.findOne({ _id: id, members: myUserId }).select("_id members").lean();
     if (!conversation) return NextResponse.json({ message: "Conversation not found." }, { status: 404 });
+    const recipientId = (conversation as any).members?.map((m: any) => String(m)).find((m: string) => m !== myUserId) || "";
 
     await ChatMessage.updateMany(
       { conversation: id, sender: { $ne: myObjectId }, seenBy: { $ne: myObjectId } },
@@ -44,7 +45,8 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
         linkUrl: m.linkUrl || "",
         imageUrl: m.imageUrl || "",
         createdAt: m.createdAt,
-        isMine: String(m.sender) === myUserId
+        isMine: String(m.sender) === myUserId,
+        seen: Array.isArray(m.seenBy) ? m.seenBy.some((u: any) => String(u) === recipientId) : false
       }))
     });
   } catch (error) {
@@ -89,11 +91,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         linkUrl,
         imageUrl,
         createdAt: created.createdAt,
-        isMine: true
+        isMine: true,
+        seen: false
       }
     });
   } catch (error) {
     return dbAwareErrorResponse("Could not send message.", error);
   }
 }
-

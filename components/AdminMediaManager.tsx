@@ -54,6 +54,24 @@ const initial: FormState = {
   isActive: true
 };
 
+function maxSpanByPlacement(placement: Placement) {
+  if (placement === "hero") return 1;
+  if (placement === "spotlight") return 2;
+  return 3;
+}
+
+function spanClassForItem(item: Pick<MediaItem, "placement" | "colSpan">) {
+  const span = Math.max(1, Math.min(maxSpanByPlacement(item.placement), item.colSpan || 1));
+  if (item.placement === "spotlight") {
+    return span >= 2 ? "md:col-span-2" : "";
+  }
+  if (item.placement === "reels" || item.placement === "ads") {
+    if (span >= 3) return "md:col-span-2 lg:col-span-3";
+    if (span === 2) return "md:col-span-2";
+  }
+  return "";
+}
+
 function isVideoFile(url: string) {
   return /\.(mp4|webm|ogg)(\?|$)/i.test(url);
 }
@@ -104,6 +122,14 @@ export default function AdminMediaManager() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const resizerRef = useRef<HTMLDivElement | null>(null);
+  const maxSpan = useMemo(() => maxSpanByPlacement(form.placement), [form.placement]);
+
+  useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      colSpan: Math.min(prev.colSpan || 1, maxSpanByPlacement(prev.placement))
+    }));
+  }, [form.placement]);
 
   async function load() {
     setLoading(true);
@@ -288,6 +314,22 @@ export default function AdminMediaManager() {
     await load();
   }
 
+  async function quickResize(item: MediaItem, next: Partial<Pick<MediaItem, "colSpan" | "cardHeight">>) {
+    const payload: Record<string, number> = {};
+    if (typeof next.colSpan === "number") {
+      payload.colSpan = Math.max(1, Math.min(maxSpanByPlacement(item.placement), next.colSpan));
+    }
+    if (typeof next.cardHeight === "number") {
+      payload.cardHeight = Math.max(160, Math.min(520, Math.round(next.cardHeight / 10) * 10));
+    }
+    await fetch(`/api/admin/landing-media/${item._id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    await load();
+  }
+
   return (
     <div className="mt-6 space-y-6">
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
@@ -367,8 +409,8 @@ export default function AdminMediaManager() {
               onChange={(e) => setForm((prev) => ({ ...prev, colSpan: Number(e.target.value) || 1 }))}
             >
               <option value={1}>1 column</option>
-              <option value={2}>2 columns</option>
-              <option value={3}>3 columns</option>
+              {maxSpan >= 2 ? <option value={2}>2 columns</option> : null}
+              {maxSpan >= 3 ? <option value={3}>3 columns</option> : null}
             </select>
           </label>
           <label className="space-y-1">
@@ -527,7 +569,7 @@ export default function AdminMediaManager() {
               {group.items.length ? (
                 <>
                   <h3 className="mb-3 text-xs uppercase tracking-[0.18em] text-pitch-200">{group.label} Section</h3>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-flow-row-dense gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {group.items.map((item) => (
                       <article
                         key={item._id}
@@ -538,7 +580,7 @@ export default function AdminMediaManager() {
                           if (dragId) await moveItem(dragId, item);
                           setDragId(null);
                         }}
-                        className="glass-soft overflow-hidden p-0"
+                        className={`glass-soft overflow-hidden p-0 ${spanClassForItem(item)}`}
                       >
                         <MediaPreview item={item} />
                         <div className="space-y-2 p-4">
@@ -548,6 +590,31 @@ export default function AdminMediaManager() {
                           </p>
                           <div className="flex flex-wrap gap-2 pt-1">
                             <span className="rounded-full border border-white/15 px-2 py-1 text-[11px] text-white/70">Drag to reorder</span>
+                            <div className="rounded-full border border-white/15 px-2 py-1 text-[11px] text-white/80">
+                              W:
+                              {[1, 2, 3]
+                                .filter((s) => s <= maxSpanByPlacement(item.placement))
+                                .map((s) => (
+                                  <button
+                                    key={`${item._id}-w-${s}`}
+                                    type="button"
+                                    className={`ml-1 rounded px-1 ${Math.min(item.colSpan || 1, maxSpanByPlacement(item.placement)) === s ? "bg-pitch-300/30 text-pitch-100" : "bg-white/10 text-white/75"}`}
+                                    onClick={() => quickResize(item, { colSpan: s })}
+                                  >
+                                    {s}
+                                  </button>
+                                ))}
+                            </div>
+                            <div className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2 py-1 text-[11px] text-white/80">
+                              H:
+                              <button type="button" className="rounded bg-white/10 px-1" onClick={() => quickResize(item, { cardHeight: (item.cardHeight || 220) - 20 })}>
+                                -
+                              </button>
+                              <span>{item.cardHeight || 220}</span>
+                              <button type="button" className="rounded bg-white/10 px-1" onClick={() => quickResize(item, { cardHeight: (item.cardHeight || 220) + 20 })}>
+                                +
+                              </button>
+                            </div>
                             <button type="button" className="btn-muted" onClick={() => startEdit(item)}>
                               Edit / Replace
                             </button>

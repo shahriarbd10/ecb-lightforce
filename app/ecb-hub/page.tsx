@@ -260,7 +260,7 @@ export default function EcbHubPage() {
 
   return (
     <main className="container-page relative pb-16">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_20%,rgba(29,196,107,0.28),transparent_30%),radial-gradient(circle_at_88%_10%,rgba(243,255,247,0.10),transparent_30%),linear-gradient(130deg,#021108_0%,#083721_52%,#03110a_100%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_20%,rgba(95,141,255,0.24),transparent_32%),radial-gradient(circle_at_88%_10%,rgba(191,82,112,0.14),transparent_32%),linear-gradient(130deg,#060d20_0%,#112957_52%,#070d1f_100%)]" />
 
       <section className="glass-panel relative overflow-hidden p-6 md:p-8">
         <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-pitch-300/25 blur-3xl" />
@@ -318,10 +318,10 @@ export default function EcbHubPage() {
               className="group glass-panel relative overflow-hidden p-0"
               style={{ transformStyle: "preserve-3d" }}
             >
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(37,199,111,0.28),rgba(7,29,18,0.34)_42%,rgba(3,12,8,0.35))]" />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(95,141,255,0.22),rgba(13,24,48,0.34)_42%,rgba(7,13,31,0.4))]" />
 
               <div className="relative border-b border-white/10">
-                <div className="aspect-[4/3] overflow-hidden bg-[#0a1811]">
+                <div className="aspect-[4/3] overflow-hidden bg-[#0d1a34]">
                   {(player.profilePhoto || player.photos?.[0]) ? (
                     <button
                       type="button"
