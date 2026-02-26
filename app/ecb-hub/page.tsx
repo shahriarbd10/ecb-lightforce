@@ -43,8 +43,6 @@ type HubPost = {
   };
 };
 
-type PreviewImage = { src: string; title: string; subtitle?: string };
-
 export default function EcbHubPage() {
   const { data: session, status } = useSession();
 
@@ -68,7 +66,7 @@ export default function EcbHubPage() {
   const [compareMinAge, setCompareMinAge] = useState("");
   const [compareMaxAge, setCompareMaxAge] = useState("");
 
-  const [previewImage, setPreviewImage] = useState<PreviewImage | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<HubPlayer | null>(null);
 
   const [composer, setComposer] = useState({
     type: "general" as "achievement" | "match_update" | "general",
@@ -151,7 +149,7 @@ export default function EcbHubPage() {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setPreviewImage(null);
+      if (event.key === "Escape") setSelectedPlayer(null);
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -255,7 +253,7 @@ export default function EcbHubPage() {
     }
   }
 
-  const topPlayers = players.slice(0, 6);
+  const browsePlayers = players;
   const canPost = status === "authenticated" && session?.user?.role === "player";
 
   return (
@@ -301,15 +299,15 @@ export default function EcbHubPage() {
 
       <section className="mt-6">
         <div className="mb-3 flex items-end justify-between">
-          <h2 className="text-2xl font-bold text-white">Top Player Cards</h2>
-          <p className="text-xs text-white/60">Tap image to preview full photo</p>
+          <h2 className="text-2xl font-bold text-white">Browse Players</h2>
+          <p className="text-xs text-white/60">Tap any card to open full profile preview</p>
         </div>
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {loading ? <p className="text-white/70">Loading players...</p> : null}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {loading ? <HubCardsSkeleton /> : null}
           {!loading && error ? <p className="text-red-300">{error}</p> : null}
           {!loading && players.length === 0 ? <p className="text-white/70">No players found.</p> : null}
 
-          {topPlayers.map((player, idx) => (
+          {browsePlayers.map((player, idx) => (
             <motion.article
               key={player.id}
               initial={{ opacity: 0, y: 18, rotateX: 8 }}
@@ -318,66 +316,45 @@ export default function EcbHubPage() {
               className="group glass-panel relative overflow-hidden p-0"
               style={{ transformStyle: "preserve-3d" }}
             >
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(95,141,255,0.22),rgba(13,24,48,0.34)_42%,rgba(7,13,31,0.4))]" />
-
-              <div className="relative border-b border-white/10">
-                <div className="aspect-[4/3] overflow-hidden bg-[#0d1a34]">
-                  {(player.profilePhoto || player.photos?.[0]) ? (
-                    <button
-                      type="button"
-                      className="h-full w-full"
-                      onClick={() =>
-                        setPreviewImage({
-                          src: player.profilePhoto || player.photos[0],
-                          title: player.name,
-                          subtitle: player.headline || "Football & Futsal Player"
-                        })
-                      }
-                    >
+              <button
+                type="button"
+                className="w-full text-left"
+                onClick={() => setSelectedPlayer(player)}
+              >
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(95,141,255,0.2),rgba(13,24,48,0.34)_42%,rgba(7,13,31,0.4))]" />
+                <div className="relative border-b border-white/10">
+                  <div className="aspect-[5/4] overflow-hidden bg-[#0d1a34]">
+                    {(player.profilePhoto || player.photos?.[0]) ? (
                       <img
                         src={player.profilePhoto || player.photos[0]}
                         alt={player.name}
                         className={`h-full w-full transition duration-500 group-hover:scale-105 ${imageFitClass(player.profilePhoto || player.photos[0])}`}
                         style={photoStyle(player)}
                       />
-                    </button>
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm text-white/55">No photo</div>
-                  )}
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-sm text-white/55">No photo</div>
+                    )}
+                  </div>
+                  <div className="absolute left-2 top-2 rounded-full border border-white/20 bg-black/45 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-pitch-200 backdrop-blur">
+                    {player.availableNow ? "Available" : "Busy"}
+                  </div>
                 </div>
-                <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/45 px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-pitch-200 backdrop-blur">
-                  {player.availableNow ? "Available Now" : "Busy"}
+                <div className="relative space-y-2 p-3">
+                  <h3 className="line-clamp-1 text-base font-semibold text-white">{player.name}</h3>
+                  <p className="line-clamp-1 text-xs text-white/75">{player.location} | Age {player.age}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(player.positions || []).slice(0, 3).map((pos) => (
+                      <span key={`${player.id}-${pos}`} className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] text-white/90">
+                        {pos}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Metric label="Goals" value={String(player.stats?.goals ?? 0)} compact />
+                    <Metric label="Assists" value={String(player.stats?.assists ?? 0)} compact />
+                  </div>
                 </div>
-              </div>
-
-              <div className="relative p-4">
-                <h3 className="text-xl font-semibold text-white">{player.name}</h3>
-                <p className="mt-1 text-sm text-white/75">{player.headline || "Football & Futsal Player"}</p>
-                <p className="mt-1 text-sm text-white/70">{player.location} | Age {player.age}</p>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {(player.positions || []).slice(0, 4).map((pos) => (
-                    <span key={`${player.id}-${pos}`} className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-white/90">
-                      {pos}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="mt-4 grid grid-cols-4 gap-2">
-                  <Metric label="Goals" value={String(player.stats?.goals ?? 0)} />
-                  <Metric label="Assists" value={String(player.stats?.assists ?? 0)} />
-                  <Metric label="Matches" value={String(player.stats?.matches ?? 0)} />
-                  <Metric label="CS" value={String(player.stats?.cleanSheets ?? 0)} />
-                </div>
-
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-xs text-white/60">{player.heightCm} cm | {player.weightKg} kg</p>
-                  <Link href={`/players/${player.slug}`} className="inline-flex items-center gap-1 text-sm font-medium text-pitch-200 underline underline-offset-4">
-                    <BootIcon size={13} />
-                    View Profile
-                  </Link>
-                </div>
-              </div>
+              </button>
             </motion.article>
           ))}
         </div>
@@ -474,29 +451,64 @@ export default function EcbHubPage() {
       </section>
 
       <AnimatePresence>
-        {previewImage ? (
+        {selectedPlayer ? (
           <motion.div
             className="fixed inset-0 z-[90] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setPreviewImage(null)}
+            onClick={() => setSelectedPlayer(null)}
           >
             <motion.div
-              className="glass-panel relative w-full max-w-5xl overflow-hidden p-0"
+              className="glass-panel relative w-full max-w-4xl overflow-hidden p-0"
               initial={{ opacity: 0, y: 16, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <button type="button" className="absolute right-3 top-3 z-10 rounded-full bg-black/60 px-3 py-1 text-sm text-white hover:bg-black/80" onClick={() => setPreviewImage(null)}>
+              <button type="button" className="absolute right-3 top-3 z-10 rounded-full bg-black/60 px-3 py-1 text-sm text-white hover:bg-black/80" onClick={() => setSelectedPlayer(null)}>
                 Close
               </button>
-              <img src={previewImage.src} alt={previewImage.title} className="max-h-[78vh] w-full object-contain bg-black/30" />
-              <div className="border-t border-white/10 p-4">
-                <p className="text-base font-semibold text-white">{previewImage.title}</p>
-                {previewImage.subtitle ? <p className="mt-1 text-xs text-pitch-200">{previewImage.subtitle}</p> : null}
+              <div className="grid gap-0 md:grid-cols-[1.1fr_1fr]">
+                <div className="bg-black/30">
+                  {(selectedPlayer.profilePhoto || selectedPlayer.photos?.[0]) ? (
+                    <img
+                      src={selectedPlayer.profilePhoto || selectedPlayer.photos[0]}
+                      alt={selectedPlayer.name}
+                      className={`max-h-[76vh] w-full object-contain ${imageFitClass(selectedPlayer.profilePhoto || selectedPlayer.photos[0])}`}
+                      style={photoStyle(selectedPlayer)}
+                    />
+                  ) : (
+                    <div className="flex min-h-[420px] items-center justify-center text-sm text-white/55">No photo</div>
+                  )}
+                </div>
+                <div className="space-y-4 border-t border-white/10 p-5 md:border-l md:border-t-0">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.14em] text-pitch-200">{selectedPlayer.availableNow ? "Available Now" : "Busy"}</p>
+                    <h3 className="mt-1 text-2xl font-bold text-white">{selectedPlayer.name}</h3>
+                    <p className="mt-1 text-sm text-white/75">{selectedPlayer.headline || "Football & Futsal Player"}</p>
+                    <p className="mt-1 text-sm text-white/70">{selectedPlayer.location} | Age {selectedPlayer.age}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(selectedPlayer.positions || []).map((pos) => (
+                      <span key={`modal-pos-${selectedPlayer.id}-${pos}`} className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-white/90">
+                        {pos}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <Metric label="Goals" value={String(selectedPlayer.stats?.goals ?? 0)} />
+                    <Metric label="Assists" value={String(selectedPlayer.stats?.assists ?? 0)} />
+                    <Metric label="Matches" value={String(selectedPlayer.stats?.matches ?? 0)} />
+                    <Metric label="CS" value={String(selectedPlayer.stats?.cleanSheets ?? 0)} />
+                  </div>
+                  <p className="text-xs text-white/60">{selectedPlayer.heightCm} cm | {selectedPlayer.weightKg} kg</p>
+                  <Link href={`/players/${selectedPlayer.slug}`} className="btn-primary inline-flex">
+                    <BootIcon size={14} />
+                    Open Full Profile
+                  </Link>
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -506,11 +518,11 @@ export default function EcbHubPage() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value, compact = false }: { label: string; value: string; compact?: boolean }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-black/25 p-2 text-center">
-      <p className="text-[11px] uppercase tracking-[0.12em] text-white/60">{label}</p>
-      <p className="mt-0.5 text-sm font-semibold text-white">{value}</p>
+    <div className={`rounded-lg border border-white/10 bg-black/25 text-center ${compact ? "p-1.5" : "p-2"}`}>
+      <p className={`${compact ? "text-[9px]" : "text-[11px]"} uppercase tracking-[0.12em] text-white/60`}>{label}</p>
+      <p className={`${compact ? "text-xs" : "text-sm"} mt-0.5 font-semibold text-white`}>{value}</p>
     </div>
   );
 }
@@ -560,4 +572,27 @@ function formatDateTime(input: string) {
     hour: "2-digit",
     minute: "2-digit"
   });
+}
+
+function HubCardsSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 6 }).map((_, idx) => (
+        <article key={`hub-skeleton-${idx}`} className="glass-panel overflow-hidden p-0">
+          <div className="skeleton aspect-[4/3] w-full" />
+          <div className="space-y-3 p-4">
+            <div className="skeleton skeleton-line w-2/3" />
+            <div className="skeleton skeleton-line w-full" />
+            <div className="skeleton skeleton-line w-1/2" />
+            <div className="grid grid-cols-4 gap-2">
+              <div className="skeleton h-12 w-full" />
+              <div className="skeleton h-12 w-full" />
+              <div className="skeleton h-12 w-full" />
+              <div className="skeleton h-12 w-full" />
+            </div>
+          </div>
+        </article>
+      ))}
+    </>
+  );
 }

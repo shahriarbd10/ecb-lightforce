@@ -187,7 +187,23 @@ export default function PlayerProfileEditor({ userName, role }: { userName: stri
   }
 
   if (loading) {
-    return <p className="mt-6 text-white/70">Loading dashboard...</p>;
+    return (
+      <div className="mt-6 space-y-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={`dash-stat-skeleton-${idx}`} className="glass-panel p-4">
+              <div className="skeleton skeleton-line w-2/3" />
+              <div className="skeleton skeleton-line mt-3 w-1/3" />
+            </div>
+          ))}
+        </div>
+        <div className="glass-panel p-5 md:p-6">
+          <div className="skeleton skeleton-line w-48" />
+          <div className="skeleton skeleton-line mt-3 w-full" />
+          <div className="skeleton mt-4 h-40 w-full" />
+        </div>
+      </div>
+    );
   }
 
   const storedPhotos = Array.from(new Set([...(form.photos || []), ...(form.profilePhoto ? [form.profilePhoto] : [])]));

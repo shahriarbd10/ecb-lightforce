@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
@@ -39,6 +39,7 @@ type RequestItem = { id: string; from?: PlayerSummary; to?: PlayerSummary };
 
 export default function PlayerChatCenter() {
   const [players, setPlayers] = useState<PlayerSummary[]>([]);
+  const [sidebarLoading, setSidebarLoading] = useState(true);
   const [incoming, setIncoming] = useState<RequestItem[]>([]);
   const [outgoing, setOutgoing] = useState<RequestItem[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -113,6 +114,8 @@ export default function PlayerChatCenter() {
         await loadSidebar();
       } catch (e: any) {
         if (mounted) setError(String(e?.message || "Could not initialize chat."));
+      } finally {
+        if (mounted) setSidebarLoading(false);
       }
     })();
     const timer = setInterval(() => {
@@ -246,7 +249,9 @@ export default function PlayerChatCenter() {
           <h2 className="font-display text-2xl text-white">Player Chat Requests</h2>
           <p className="mt-1 text-xs text-white/70">Send request first. Chat opens only after acceptance.</p>
 
-          {incoming.length ? (
+          {sidebarLoading ? (
+            <ChatSidebarSkeleton count={2} />
+          ) : incoming.length ? (
             <div className="mt-3 space-y-2">
               {incoming.map((req) => (
                 <div key={req.id} className="glass-soft flex items-center justify-between p-3">
@@ -285,7 +290,8 @@ export default function PlayerChatCenter() {
         <div className="glass-panel p-4">
           <h3 className="text-lg font-semibold text-white">Players</h3>
           <div className="mt-3 max-h-[280px] space-y-2 overflow-auto pr-1">
-            {players.map((player) => (
+            {sidebarLoading ? <ChatSidebarSkeleton count={4} /> : null}
+            {!sidebarLoading ? players.map((player) => (
               <div key={player.userId} className="glass-soft flex items-center justify-between p-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-white">{player.name}</p>
@@ -305,15 +311,16 @@ export default function PlayerChatCenter() {
                   </button>
                 )}
               </div>
-            ))}
-            {!players.length ? <p className="text-sm text-white/70">No players available.</p> : null}
+            )) : null}
+            {!sidebarLoading && !players.length ? <p className="text-sm text-white/70">No players available.</p> : null}
           </div>
         </div>
 
         <div className="glass-panel p-4">
           <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-pitch-200">Active Conversations</h3>
           <div className="mt-3 max-h-[220px] space-y-2 overflow-auto pr-1">
-            {conversations.map((conv) => (
+            {sidebarLoading ? <ChatSidebarSkeleton count={3} /> : null}
+            {!sidebarLoading ? conversations.map((conv) => (
               <button
                 key={conv.id}
                 type="button"
@@ -334,8 +341,8 @@ export default function PlayerChatCenter() {
                   {conv.lastMessage?.text || conv.lastMessage?.linkUrl || (conv.lastMessage?.imageUrl ? "Sent an image" : "No messages yet")}
                 </p>
               </button>
-            ))}
-            {!conversations.length ? <p className="text-sm text-white/70">No active conversations.</p> : null}
+            )) : null}
+            {!sidebarLoading && !conversations.length ? <p className="text-sm text-white/70">No active conversations.</p> : null}
           </div>
         </div>
       </div>
@@ -351,9 +358,9 @@ export default function PlayerChatCenter() {
         </div>
 
         <div className="mt-0 flex-1 space-y-2 overflow-auto bg-[linear-gradient(180deg,rgba(12,22,42,0.1),rgba(7,12,26,0.5))] p-4 pr-2 md:p-5 md:pr-3">
-          {loadingMessages ? <p className="text-sm text-white/70">Loading chat...</p> : null}
+          {loadingMessages && messages.length === 0 ? <ChatMessagesSkeleton /> : null}
           {!selectedConversationId ? <p className="text-sm text-white/70">Open or accept a chat to start messaging.</p> : null}
-          {selectedConversationId && !messages.length ? <p className="text-sm text-white/70">No messages yet.</p> : null}
+          {selectedConversationId && !loadingMessages && !messages.length ? <p className="text-sm text-white/70">No messages yet.</p> : null}
           {messages.map((m) => (
             <div
               key={m.id}
@@ -374,7 +381,7 @@ export default function PlayerChatCenter() {
               ) : null}
               <p className="mt-1 text-[10px] text-white/60">
                 {formatChatTime(m.createdAt)}
-                {m.isMine ? ` · ${m.seen ? "Seen" : "Unseen"}` : ""}
+                {m.isMine ? ` • ${m.seen ? "Seen" : "Unseen"}` : ""}
               </p>
             </div>
           ))}
@@ -470,5 +477,40 @@ function MediaIcon() {
       <path d="M8 15l2.5-2.5L13 15l1.5-1.5L17 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="9" cy="9.5" r="1.1" fill="currentColor" />
     </svg>
+  );
+}
+
+function ChatSidebarSkeleton({ count }: { count: number }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, idx) => (
+        <div key={`chat-sidebar-skeleton-${idx}`} className="glass-soft p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="skeleton skeleton-line w-2/3" />
+              <div className="skeleton skeleton-line w-1/2" />
+            </div>
+            <div className="skeleton h-8 w-16 rounded-full" />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function ChatMessagesSkeleton() {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: 4 }).map((_, idx) => (
+        <div
+          key={`chat-msg-skeleton-${idx}`}
+          className={`max-w-[86%] rounded-2xl border border-white/15 p-3 ${idx % 2 ? "ml-auto" : ""}`}
+        >
+          <div className="skeleton skeleton-line w-40" />
+          <div className="skeleton mt-2 h-20 w-56 rounded-lg" />
+          <div className="skeleton skeleton-line mt-2 w-20" />
+        </div>
+      ))}
+    </div>
   );
 }

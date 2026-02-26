@@ -164,8 +164,8 @@ export default function LiveFeedPage() {
         </section>
       ) : null}
 
-      <section className="mt-4 max-h-[72vh] space-y-4 overflow-y-auto pr-1 md:pr-2">
-        {loading ? <p className="text-white/75">Loading live feed...</p> : null}
+      <section className="mt-4 space-y-4">
+        {loading ? <LiveFeedSkeleton /> : null}
         {!loading && error ? <p className="text-red-300">{error}</p> : null}
         {!loading && !posts.length ? <p className="text-white/75">No posts yet.</p> : null}
 
@@ -368,5 +368,33 @@ function PostIcon() {
       <path d="M4 20h4l10-10a2.1 2.1 0 1 0-3-3L5 17v3Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
       <path d="M13.5 6.5l4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
+  );
+}
+
+function LiveFeedSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 3 }).map((_, idx) => (
+        <article key={`feed-skeleton-${idx}`} className="glass-panel p-4 md:p-5">
+          <div className="flex items-center gap-3">
+            <div className="skeleton h-10 w-10 rounded-full" />
+            <div className="min-w-[180px] flex-1 space-y-2">
+              <div className="skeleton skeleton-line w-36" />
+              <div className="skeleton skeleton-line w-24" />
+            </div>
+            <div className="skeleton skeleton-pill w-20" />
+          </div>
+          <div className="mt-4 space-y-2">
+            <div className="skeleton skeleton-line w-3/4" />
+            <div className="skeleton skeleton-line w-full" />
+          </div>
+          <div className="skeleton mt-3 h-56 w-full rounded-xl" />
+          <div className="mt-3 flex gap-3">
+            <div className="skeleton skeleton-pill w-16" />
+            <div className="skeleton skeleton-pill w-20" />
+          </div>
+        </article>
+      ))}
+    </>
   );
 }

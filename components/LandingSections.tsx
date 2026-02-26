@@ -143,6 +143,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
     if (manual.length) return manual.slice(0, 6);
     return (feed?.highlights || []).filter((v) => !!v.video).slice(0, 2);
   }, [feed]);
+  const pulseHighlights = useMemo(() => (feed?.highlights || []).slice(0, 4), [feed?.highlights]);
   const managedHero = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "hero").slice(0, 4), [feed]);
   const managedSpotlight = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "spotlight").slice(0, 4), [feed]);
   const managedReels = useMemo(() => (feed?.managedMedia || []).filter((m) => m.placement === "reels").slice(0, 6), [feed]);
@@ -434,7 +435,19 @@ export default function LandingSections({ previewData = null, previewMode = fals
 
         <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
           <div className="grid gap-4 md:grid-cols-2">
-            {(feed?.highlights || []).slice(0, 4).map((item) => (
+            {!feed ? (
+              Array.from({ length: 4 }).map((_, idx) => (
+                <article key={`pulse-skeleton-${idx}`} className="glass-panel overflow-hidden p-0">
+                  <div className="skeleton h-44 w-full" />
+                  <div className="space-y-2 p-4">
+                    <div className="skeleton skeleton-pill w-24" />
+                    <div className="skeleton skeleton-line w-3/4" />
+                    <div className="skeleton skeleton-line w-1/2" />
+                  </div>
+                </article>
+              ))
+            ) : (
+            pulseHighlights.map((item) => (
               <article key={item.id} className="glass-panel overflow-hidden p-0">
                 <div className="relative">
                   {item.thumb ? (
@@ -454,7 +467,8 @@ export default function LandingSections({ previewData = null, previewMode = fals
                   <p className="mt-1 text-xs text-white/70">{formatDate(item.date, item.time)}</p>
                 </div>
               </article>
-            ))}
+            ))
+            )}
           </div>
           <div className="glass-panel p-4">
             <div className="flex items-center justify-between gap-2">
@@ -468,7 +482,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
               onOpenDate={(date) => setSelectedFixtureDate(date)}
               onMonthChange={setCalendarMonth}
             />
-            {!feed ? <p className="mt-3 text-xs text-white/60">Loading latest feed...</p> : null}
+            {!feed ? <div className="skeleton skeleton-line mt-3 w-40" /> : null}
           </div>
         </div>
       </section>
