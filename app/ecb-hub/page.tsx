@@ -457,115 +457,18 @@ export default function EcbHubPage() {
         </section>
       ) : null}
 
-      <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_1.25fr]">
+      <section className="mt-8">
         <div className="glass-panel p-5 md:p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Player Timeline</p>
-          <h2 className="mt-2 text-2xl font-bold text-white">Post Current Updates</h2>
-
-          {canPost ? (
-            <div className="mt-4 space-y-3">
-              <select className="input" value={composer.type} onChange={(e) => setComposer((s) => ({ ...s, type: e.target.value as any }))}>
-                <option value="general">General Update</option>
-                <option value="achievement">Achievement</option>
-                <option value="match_update">Match Update</option>
-              </select>
-              <input className="input" placeholder="Post title" value={composer.title} onChange={(e) => setComposer((s) => ({ ...s, title: e.target.value }))} />
-              <textarea className="input min-h-28" placeholder="Write your update" value={composer.content} onChange={(e) => setComposer((s) => ({ ...s, content: e.target.value }))} />
-
-              <input
-                className="input"
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  try {
-                    await uploadPostImage(file);
-                  } catch (err: any) {
-                    setTimelineError(err?.message || "Could not upload image.");
-                  } finally {
-                    e.currentTarget.value = "";
-                  }
-                }}
-              />
-
-              {composer.image ? (
-                <div className="relative overflow-hidden rounded-xl border border-white/10">
-                  <img src={composer.image} alt="Post preview" className="h-40 w-full object-cover" />
-                  <button type="button" className="absolute right-2 top-2 rounded bg-black/70 px-2 py-1 text-xs text-white" onClick={() => setComposer((s) => ({ ...s, image: "" }))}>
-                    Remove
-                  </button>
-                </div>
-              ) : null}
-
-              <button type="button" className="btn-primary" onClick={publishPost} disabled={postSaving || !composer.title || !composer.content}>
-                <BallIcon />
-                {postSaving ? "Publishing..." : "Publish To Timeline"}
-              </button>
-              {timelineError ? <p className="text-xs text-red-300">{timelineError}</p> : null}
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-white/70">Login as a player to post timeline updates.</p>
-          )}
-        </div>
-
-        <div className="glass-panel p-5 md:p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Live Feed</p>
-              <h2 className="mt-1 text-2xl font-bold text-white">All Player Updates</h2>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {timelineLoading ? <p className="text-white/70">Loading timeline...</p> : null}
-            {!timelineLoading && posts.length === 0 ? <p className="text-white/70">No updates posted yet.</p> : null}
-
-            {posts.map((post, idx) => (
-              <motion.article
-                key={post.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: idx * 0.03 }}
-                className="rounded-2xl border border-white/10 bg-white/5 p-4"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    {post.author.profilePhoto ? (
-                      <img src={post.author.profilePhoto} alt={post.author.name} className="h-9 w-9 rounded-full object-cover" style={avatarStyle(post.author.profilePhotoMeta)} />
-                    ) : (
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-pitch-300 text-black">{post.author.name.slice(0, 1).toUpperCase()}</span>
-                    )}
-                    <div>
-                      <p className="text-sm font-medium text-white">{post.author.name}</p>
-                      <p className="text-xs text-white/60">{formatDateTime(post.createdAt)}</p>
-                    </div>
-                  </div>
-                  <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-pitch-200">
-                    {post.type.replace("_", " ")}
-                  </span>
-                </div>
-
-                <h3 className="mt-3 text-lg font-semibold text-white">{post.title}</h3>
-                <p className="mt-1 text-sm text-white/80">{post.content}</p>
-
-                {post.image ? (
-                  <button
-                    type="button"
-                    className="mt-3 w-full overflow-hidden rounded-xl border border-white/10"
-                    onClick={() => setPreviewImage({ src: post.image || "", title: post.title, subtitle: post.author.name })}
-                  >
-                    <img src={post.image} alt={post.title} className="h-48 w-full object-cover" />
-                  </button>
-                ) : null}
-
-                {post.author.slug ? (
-                  <Link href={`/players/${post.author.slug}`} className="mt-3 inline-block text-xs text-pitch-200 underline underline-offset-4">
-                    View Player Profile
-                  </Link>
-                ) : null}
-              </motion.article>
-            ))}
+          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Live Feed Moved</p>
+          <h2 className="mt-2 text-2xl font-bold text-white">Timeline Is Now A Dedicated Page</h2>
+          <p className="mt-2 text-white/75">
+            Open the full Live Feed page for Facebook-style updates with likes and comments.
+          </p>
+          <div className="mt-4">
+            <Link href="/live-feed" className="btn-primary">
+              <BallIcon />
+              Open Live Feed
+            </Link>
           </div>
         </div>
       </section>

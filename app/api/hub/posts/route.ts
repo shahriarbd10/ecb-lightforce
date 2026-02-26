@@ -17,6 +17,8 @@ const postSchema = z.object({
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    const me = session?.user?.id ? String(session.user.id) : "";
     await connectToDatabase();
 
     const posts = await HubPost.find({ isActive: true })
@@ -27,10 +29,16 @@ export async function GET() {
 
     const playerPosts = posts.filter((post: any) => post.user?.role === "player");
     const userIds = playerPosts.map((post: any) => String(post.user?._id || "")).filter(Boolean);
+    const commentUserIds = playerPosts.flatMap((post: any) =>
+      (post.comments || []).map((c: any) => String(c.user || "")).filter(Boolean)
+    );
+    const allUserIds = Array.from(new Set([...userIds, ...commentUserIds]));
     const profiles = await PlayerProfile.find({ user: { $in: userIds } })
       .select("user slug profilePhoto profilePhotoMeta")
       .lean();
+    const commentUsers = await User.find({ _id: { $in: allUserIds } }).select("name").lean();
     const profileMap = new Map(profiles.map((p: any) => [String(p.user), p]));
+    const commentUserMap = new Map(commentUsers.map((u: any) => [String(u._id), u.name || "Player"]));
 
     return NextResponse.json(
       playerPosts.map((post: any) => {
@@ -42,6 +50,18 @@ export async function GET() {
           content: post.content,
           image: post.image || "",
           createdAt: post.createdAt,
+          likeCount: Array.isArray(post.likes) ? post.likes.length : 0,
+          likedByMe: Array.isArray(post.likes) ? post.likes.some((u: any) => String(u) === me) : false,
+          commentCount: Array.isArray(post.comments) ? post.comments.length : 0,
+          comments: Array.isArray(post.comments)
+            ? post.comments.slice(-20).map((c: any) => ({
+                id: String(c._id || `${post._id}-${c.createdAt}`),
+                text: c.text || "",
+                createdAt: c.createdAt || post.createdAt,
+                userId: String(c.user || ""),
+                authorName: commentUserMap.get(String(c.user || "")) || "Player"
+              }))
+            : [],
           author: {
             name: post.user?.name || "Player",
             slug: profile?.slug || "",

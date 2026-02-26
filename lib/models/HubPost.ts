@@ -7,6 +7,14 @@ const HubPostSchema = new Schema(
     title: { type: String, required: true, trim: true, minlength: 2, maxlength: 140 },
     content: { type: String, required: true, trim: true, minlength: 2, maxlength: 1200 },
     image: { type: String, default: "", trim: true },
+    likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    comments: [
+      {
+        user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        text: { type: String, required: true, trim: true, minlength: 1, maxlength: 400 },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ],
     isActive: { type: Boolean, default: true, index: true }
   },
   { timestamps: true }

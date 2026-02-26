@@ -104,6 +104,9 @@ export default function NavBar() {
           <Link href="/ecb-hub" className="rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
             Lightforce Hub
           </Link>
+          <Link href="/live-feed" className="rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
+            Live Feed
+          </Link>
 
           {isLoggedIn ? (
             <>
@@ -161,6 +164,9 @@ export default function NavBar() {
           <div className="mx-auto flex max-w-6xl flex-col gap-2">
             <Link href="/ecb-hub" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
               Lightforce Hub
+            </Link>
+            <Link href="/live-feed" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
+              Live Feed
             </Link>
 
             {isLoggedIn ? (
