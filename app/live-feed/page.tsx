@@ -37,6 +37,7 @@ export default function LiveFeedPage() {
   const [saving, setSaving] = useState(false);
   const [commentText, setCommentText] = useState<Record<string, string>>({});
   const [previewImage, setPreviewImage] = useState<{ src: string; title: string } | null>(null);
+  const [showPostModal, setShowPostModal] = useState(false);
 
   const canPost = status === "authenticated" && session?.user?.role === "player";
 
@@ -157,44 +158,11 @@ export default function LiveFeedPage() {
         <p className="mt-2 text-sm text-white/75">Facebook-style updates from all players with likes and comments.</p>
       </section>
 
-      {canPost ? (
-        <section className="glass-panel mt-4 p-5 md:p-6">
-          <p className="text-sm font-semibold text-white">Create Post</p>
-          <div className="mt-3 space-y-2">
-            <select className="input" value={composer.type} onChange={(e) => setComposer((s) => ({ ...s, type: e.target.value as any }))}>
-              <option value="general">General</option>
-              <option value="achievement">Achievement</option>
-              <option value="match_update">Match Update</option>
-            </select>
-            <input className="input" placeholder="Title" value={composer.title} onChange={(e) => setComposer((s) => ({ ...s, title: e.target.value }))} />
-            <textarea className="input min-h-28" placeholder="Share your update..." value={composer.content} onChange={(e) => setComposer((s) => ({ ...s, content: e.target.value }))} />
-            <input
-              type="file"
-              className="input"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                try {
-                  await uploadImage(file);
-                } catch (err: any) {
-                  setError(String(err?.message || "Could not upload image."));
-                } finally {
-                  e.currentTarget.value = "";
-                }
-              }}
-            />
-            {composer.image ? <img src={composer.image} alt="Preview" className="h-48 w-full rounded-xl border border-white/10 object-cover" /> : null}
-            <button className="btn-primary" onClick={publishPost} disabled={saving || !composer.title || !composer.content}>
-              {saving ? "Publishing..." : "Publish"}
-            </button>
-          </div>
-        </section>
-      ) : (
+      {!canPost ? (
         <section className="glass-panel mt-4 p-4 text-sm text-white/75">
           Login as player to publish updates. <Link href="/login?callbackUrl=/live-feed" className="underline text-pitch-200">Login</Link>
         </section>
-      )}
+      ) : null}
 
       <section className="mt-4 max-h-[72vh] space-y-4 overflow-y-auto pr-1 md:pr-2">
         {loading ? <p className="text-white/75">Loading live feed...</p> : null}
@@ -272,6 +240,80 @@ export default function LiveFeedPage() {
           </div>
         </div>
       ) : null}
+
+      {canPost ? (
+        <button
+          type="button"
+          onClick={() => setShowPostModal(true)}
+          className="fixed bottom-5 right-5 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/25 bg-pitch-400 text-black shadow-[0_10px_26px_rgba(61,111,245,0.45)] transition hover:scale-105"
+          aria-label="Create post"
+        >
+          <PostIcon />
+        </button>
+      ) : null}
+
+      {showPostModal ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setShowPostModal(false)}
+        >
+          <div className="glass-panel w-full max-w-2xl p-5 md:p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-display text-3xl text-white">Create Timeline Post</h2>
+              <button type="button" className="btn-muted" onClick={() => setShowPostModal(false)}>
+                Close
+              </button>
+            </div>
+            <div className="space-y-2">
+              <select className="input" value={composer.type} onChange={(e) => setComposer((s) => ({ ...s, type: e.target.value as any }))}>
+                <option value="general">General</option>
+                <option value="achievement">Achievement</option>
+                <option value="match_update">Match Update</option>
+              </select>
+              <input className="input" placeholder="Title" value={composer.title} onChange={(e) => setComposer((s) => ({ ...s, title: e.target.value }))} />
+              <textarea className="input min-h-28" placeholder="Share your update..." value={composer.content} onChange={(e) => setComposer((s) => ({ ...s, content: e.target.value }))} />
+              <input
+                type="file"
+                className="input"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    await uploadImage(file);
+                  } catch (err: any) {
+                    setError(String(err?.message || "Could not upload image."));
+                  } finally {
+                    e.currentTarget.value = "";
+                  }
+                }}
+              />
+              {composer.image ? (
+                <div className="relative">
+                  <img src={composer.image} alt="Preview" className="h-56 w-full rounded-xl border border-white/10 object-contain bg-black/20" />
+                  <button
+                    type="button"
+                    className="absolute right-2 top-2 rounded-md bg-black/70 px-2 py-1 text-xs text-white"
+                    onClick={() => setComposer((s) => ({ ...s, image: "" }))}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : null}
+              <button
+                className="btn-primary"
+                onClick={async () => {
+                  await publishPost();
+                  setShowPostModal(false);
+                }}
+                disabled={saving || !composer.title || !composer.content}
+              >
+                {saving ? "Publishing..." : "Publish"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
@@ -316,6 +358,15 @@ function UserIcon() {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.6" />
       <path d="M5 19a7 7 0 0 1 14 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function PostIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 20h4l10-10a2.1 2.1 0 1 0-3-3L5 17v3Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M13.5 6.5l4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   );
 }
