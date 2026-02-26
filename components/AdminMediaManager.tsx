@@ -330,6 +330,14 @@ export default function AdminMediaManager() {
     await load();
   }
 
+  async function applyResizeFromBox(item: MediaItem, element: HTMLDivElement) {
+    const w = element.clientWidth;
+    const h = element.clientHeight;
+    const placementMax = maxSpanByPlacement(item.placement);
+    const nextCol = placementMax === 1 ? 1 : placementMax === 2 ? (w >= 420 ? 2 : 1) : w >= 560 ? 3 : w >= 360 ? 2 : 1;
+    await quickResize(item, { colSpan: nextCol, cardHeight: h });
+  }
+
   return (
     <div className="mt-6 space-y-6">
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
@@ -590,30 +598,17 @@ export default function AdminMediaManager() {
                           </p>
                           <div className="flex flex-wrap gap-2 pt-1">
                             <span className="rounded-full border border-white/15 px-2 py-1 text-[11px] text-white/70">Drag to reorder</span>
-                            <div className="rounded-full border border-white/15 px-2 py-1 text-[11px] text-white/80">
-                              W:
-                              {[1, 2, 3]
-                                .filter((s) => s <= maxSpanByPlacement(item.placement))
-                                .map((s) => (
-                                  <button
-                                    key={`${item._id}-w-${s}`}
-                                    type="button"
-                                    className={`ml-1 rounded px-1 ${Math.min(item.colSpan || 1, maxSpanByPlacement(item.placement)) === s ? "bg-pitch-300/30 text-pitch-100" : "bg-white/10 text-white/75"}`}
-                                    onClick={() => quickResize(item, { colSpan: s })}
-                                  >
-                                    {s}
-                                  </button>
-                                ))}
-                            </div>
-                            <div className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2 py-1 text-[11px] text-white/80">
-                              H:
-                              <button type="button" className="rounded bg-white/10 px-1" onClick={() => quickResize(item, { cardHeight: (item.cardHeight || 220) - 20 })}>
-                                -
-                              </button>
-                              <span>{item.cardHeight || 220}</span>
-                              <button type="button" className="rounded bg-white/10 px-1" onClick={() => quickResize(item, { cardHeight: (item.cardHeight || 220) + 20 })}>
-                                +
-                              </button>
+                            <div className="w-full rounded-xl border border-white/12 bg-white/[0.04] p-2">
+                              <p className="mb-1 text-[11px] text-white/65">Resize with mouse (drag bottom-right corner)</p>
+                              <div
+                                className="resize overflow-auto rounded-lg border border-white/15 bg-white/5"
+                                style={{ width: Math.min(620, (item.colSpan || 1) * 180), height: item.cardHeight || 220, maxWidth: "100%" }}
+                                onMouseUp={(e) => applyResizeFromBox(item, e.currentTarget)}
+                              >
+                                <div className="h-full w-full p-2 text-[11px] text-white/55">
+                                  Live resize preview
+                                </div>
+                              </div>
                             </div>
                             <button type="button" className="btn-muted" onClick={() => startEdit(item)}>
                               Edit / Replace

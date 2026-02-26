@@ -271,7 +271,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
             {[
               { n: "2025", t: "Club Started" },
               { n: "24/7", t: "Profile Visibility" },
-              { n: "3 Roles", t: "Player / Org / Admin" }
+              { n: "90'", t: "Matchday Mindset" }
             ].map((s) => (
               <div key={s.t} className="animated-chip glass-soft p-3">
                 <p className="text-lg font-bold text-white">{s.n}</p>
@@ -397,9 +397,9 @@ export default function LandingSections({ previewData = null, previewMode = fals
           </p>
 
           <div className="mt-6 grid gap-3 md:grid-cols-3">
-            <GlassTag label="3D-Inspired UI" text="Depth, motion, and glass layers for a premium sports experience." />
-            <GlassTag label="Talent Visibility" text="Designed for quick scouting by organizers and clubs." />
-            <GlassTag label="Community Driven" text="Open resources and remixes to evolve faster." />
+            <GlassTag label="Matchday Readiness" text="Availability, role fit, and current form in one view." />
+            <GlassTag label="Talent Visibility" text="Built for fast scouting by organizers, coaches, and clubs." />
+            <GlassTag label="Performance Journey" text="Track progress through achievements, stats, and timeline updates." />
           </div>
         </div>
       </section>
