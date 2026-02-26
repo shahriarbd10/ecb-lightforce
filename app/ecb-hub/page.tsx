@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 
 type HubPlayer = {
   id: string;
@@ -15,11 +16,7 @@ type HubPlayer = {
   positions: string[];
   availableNow: boolean;
   profilePhoto?: string;
-  profilePhotoMeta?: {
-    x?: number;
-    y?: number;
-    zoom?: number;
-  };
+  profilePhotoMeta?: { x?: number; y?: number; zoom?: number };
   photos: string[];
   headline: string;
   stats?: {
@@ -30,22 +27,55 @@ type HubPlayer = {
   };
 };
 
+type HubPost = {
+  id: string;
+  type: "achievement" | "match_update" | "general";
+  title: string;
+  content: string;
+  image?: string;
+  createdAt: string;
+  author: {
+    name: string;
+    slug: string;
+    profilePhoto?: string;
+    profilePhotoMeta?: { x?: number; y?: number; zoom?: number };
+  };
+};
+
+type PreviewImage = { src: string; title: string; subtitle?: string };
+
 export default function EcbHubPage() {
+  const { data: session, status } = useSession();
+
   const [players, setPlayers] = useState<HubPlayer[]>([]);
+  const [posts, setPosts] = useState<HubPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [timelineLoading, setTimelineLoading] = useState(true);
   const [error, setError] = useState("");
+  const [timelineError, setTimelineError] = useState("");
+
   const [search, setSearch] = useState("");
   const [position, setPosition] = useState("");
   const [availableNow, setAvailableNow] = useState(false);
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
+
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareSearch, setCompareSearch] = useState("");
   const [comparePosition, setComparePosition] = useState("");
   const [compareMinAge, setCompareMinAge] = useState("");
   const [compareMaxAge, setCompareMaxAge] = useState("");
-  const [previewImage, setPreviewImage] = useState<{ src: string; title: string } | null>(null);
+
+  const [previewImage, setPreviewImage] = useState<PreviewImage | null>(null);
+
+  const [composer, setComposer] = useState({
+    type: "general" as "achievement" | "match_update" | "general",
+    title: "",
+    content: "",
+    image: ""
+  });
+  const [postSaving, setPostSaving] = useState(false);
 
   const query = useMemo(() => {
     const p = new URLSearchParams();
@@ -60,19 +90,19 @@ export default function EcbHubPage() {
   useEffect(() => {
     let mounted = true;
 
-    async function load() {
+    async function loadPlayers() {
       setLoading(true);
       setError("");
       try {
         const res = await fetch(`/api/players?${query}`, { cache: "no-store" });
         const data = await res.json();
-        if (mounted) {
-          if (!res.ok) {
-            setPlayers([]);
-            setError(data?.message || "Could not load players.");
-          } else {
-            setPlayers(Array.isArray(data) ? data : []);
-          }
+        if (!mounted) return;
+
+        if (!res.ok) {
+          setPlayers([]);
+          setError(data?.message || "Could not load players.");
+        } else {
+          setPlayers(Array.isArray(data) ? data : []);
         }
       } catch {
         if (mounted) {
@@ -80,21 +110,51 @@ export default function EcbHubPage() {
           setError("Network error while loading players.");
         }
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     }
 
-    load();
+    loadPlayers();
     return () => {
       mounted = false;
     };
   }, [query]);
 
+  async function loadTimeline() {
+    setTimelineLoading(true);
+    setTimelineError("");
+    try {
+      const res = await fetch("/api/hub/posts", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) {
+        setPosts([]);
+        setTimelineError(data?.message || "Could not load timeline.");
+      } else {
+        setPosts(Array.isArray(data) ? data : []);
+      }
+    } catch {
+      setPosts([]);
+      setTimelineError("Network error while loading timeline.");
+    } finally {
+      setTimelineLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadTimeline();
+  }, []);
+
   useEffect(() => {
     setSelectedPlayerIds((prev) => prev.filter((id) => players.some((p) => p.id === id)).slice(0, 4));
   }, [players]);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setPreviewImage(null);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const selectedPlayers = useMemo(() => {
     const order = new Map(selectedPlayerIds.map((id, idx) => [id, idx]));
@@ -103,27 +163,6 @@ export default function EcbHubPage() {
       .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
       .slice(0, 4);
   }, [players, selectedPlayerIds]);
-
-  const maxMetric = useMemo(() => {
-    if (!selectedPlayers.length) return 1;
-    const values = selectedPlayers.flatMap((p) => [
-      p.stats?.goals ?? 0,
-      p.stats?.assists ?? 0,
-      p.stats?.matches ?? 0,
-      p.stats?.cleanSheets ?? 0
-    ]);
-    return Math.max(1, ...values);
-  }, [selectedPlayers]);
-
-  const commonPositions = useMemo(() => {
-    const freq = new Map<string, number>();
-    selectedPlayers.forEach((player) => {
-      player.positions.forEach((pos) => {
-        freq.set(pos, (freq.get(pos) || 0) + 1);
-      });
-    });
-    return Array.from(freq.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
-  }, [selectedPlayers]);
 
   const compareCandidates = useMemo(() => {
     return players.filter((player) => {
@@ -141,15 +180,16 @@ export default function EcbHubPage() {
     });
   }, [players, comparePosition, compareSearch, compareMinAge, compareMaxAge]);
 
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setPreviewImage(null);
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  const maxMetric = useMemo(() => {
+    if (!selectedPlayers.length) return 1;
+    const values = selectedPlayers.flatMap((p) => [
+      p.stats?.goals ?? 0,
+      p.stats?.assists ?? 0,
+      p.stats?.matches ?? 0,
+      p.stats?.cleanSheets ?? 0
+    ]);
+    return Math.max(1, ...values);
+  }, [selectedPlayers]);
 
   function toggleSelection(id: string) {
     setSelectedPlayerIds((prev) => {
@@ -159,54 +199,92 @@ export default function EcbHubPage() {
     });
   }
 
+  async function uploadPostImage(file: File) {
+    if (file.size > 10 * 1024 * 1024) {
+      setTimelineError("Image must be 10 MB or less.");
+      return;
+    }
+
+    const signRes = await fetch("/api/uploads/sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ folder: "ecb-lightforce/hub-posts", purpose: "hub-post" })
+    });
+    const signData = await signRes.json().catch(() => ({}));
+    if (!signRes.ok) throw new Error(signData?.message || "Could not get upload signature.");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("api_key", signData.apiKey);
+    formData.append("timestamp", String(signData.timestamp));
+    formData.append("folder", signData.folder);
+    formData.append("public_id", signData.publicId);
+    formData.append("signature", signData.signature);
+
+    const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${signData.cloudName}/image/upload`, {
+      method: "POST",
+      body: formData
+    });
+    const uploaded = await uploadRes.json().catch(() => ({}));
+    if (!uploadRes.ok || !uploaded?.secure_url) {
+      throw new Error(uploaded?.error?.message || "Image upload failed.");
+    }
+
+    setComposer((s) => ({ ...s, image: String(uploaded.secure_url) }));
+  }
+
+  async function publishPost() {
+    setPostSaving(true);
+    setTimelineError("");
+    try {
+      const res = await fetch("/api/hub/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(composer)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setTimelineError(data?.message || "Could not publish post.");
+        return;
+      }
+      setComposer({ type: "general", title: "", content: "", image: "" });
+      await loadTimeline();
+    } finally {
+      setPostSaving(false);
+    }
+  }
+
+  const topPlayers = players.slice(0, 6);
+  const canPost = status === "authenticated" && session?.user?.role === "player";
+
   return (
-    <main className="container-page relative">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_20%,rgba(26,219,101,0.18),transparent_30%),radial-gradient(circle_at_86%_10%,rgba(255,255,255,0.1),transparent_28%)]" />
+    <main className="container-page relative pb-16">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_20%,rgba(65,132,255,0.35),transparent_30%),radial-gradient(circle_at_88%_10%,rgba(255,91,91,0.25),transparent_30%),linear-gradient(130deg,#0a1024_0%,#11193a_52%,#0c1127_100%)]" />
 
       <section className="glass-panel relative overflow-hidden p-6 md:p-8">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-pitch-300/20 blur-3xl" />
-        <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Lightforce Discovery</p>
-        <h1 className="mt-2 text-3xl font-bold text-white md:text-5xl">Lightforce Hub</h1>
+        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#58a9ff]/30 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 left-16 h-64 w-64 rounded-full bg-[#ff6363]/20 blur-3xl" />
+
+        <p className="text-xs uppercase tracking-[0.2em] text-[#9bc8ff]">Elite Player Hub</p>
+        <h1 className="mt-2 text-4xl font-black tracking-tight text-white md:text-6xl">Lightforce Hub</h1>
         <p className="mt-3 max-w-3xl text-white/75">
-          Explore verified player profiles from local grounds, schools, colleges, and universities. Filter quickly and scout confidently.
+          Premium player discovery, side-by-side comparison, and a live timeline where players publish achievements and match updates.
         </p>
 
         <div className="mt-6 grid gap-3 md:grid-cols-5">
-          <input
-            className="input md:col-span-2"
-            placeholder="Search by location, headline, position"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <input
-            className="input"
-            placeholder="Position (CM, ST, GK)"
-            value={position}
-            onChange={(e) => setPosition(e.target.value)}
-          />
-          <input
-            className="input"
-            type="number"
-            placeholder="Min age"
-            value={minAge}
-            onChange={(e) => setMinAge(e.target.value)}
-          />
-          <input
-            className="input"
-            type="number"
-            placeholder="Max age"
-            value={maxAge}
-            onChange={(e) => setMaxAge(e.target.value)}
-          />
+          <input className="input md:col-span-2" placeholder="Search player, location, role" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="input" placeholder="Position (CM, ST)" value={position} onChange={(e) => setPosition(e.target.value)} />
+          <input className="input" type="number" placeholder="Min age" value={minAge} onChange={(e) => setMinAge(e.target.value)} />
+          <input className="input" type="number" placeholder="Max age" value={maxAge} onChange={(e) => setMaxAge(e.target.value)} />
         </div>
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <label className="inline-flex items-center gap-2 text-sm text-white/85">
             <input type="checkbox" checked={availableNow} onChange={(e) => setAvailableNow(e.target.checked)} />
-            Show available now only
+            Available now only
           </label>
           <div className="flex items-center gap-3">
-            <p className="text-xs text-white/60">{players.length} profiles visible</p>
+            <p className="text-xs text-white/60">{players.length} players visible</p>
             <button type="button" className="btn-primary" onClick={() => setCompareOpen((v) => !v)}>
               {compareOpen ? "Close Compare" : "Compare Players"}
             </button>
@@ -214,39 +292,99 @@ export default function EcbHubPage() {
         </div>
       </section>
 
+      <section className="mt-6">
+        <div className="mb-3 flex items-end justify-between">
+          <h2 className="text-2xl font-bold text-white">Top Player Cards</h2>
+          <p className="text-xs text-white/60">Tap image to preview full photo</p>
+        </div>
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {loading ? <p className="text-white/70">Loading players...</p> : null}
+          {!loading && error ? <p className="text-red-300">{error}</p> : null}
+          {!loading && players.length === 0 ? <p className="text-white/70">No players found.</p> : null}
+
+          {topPlayers.map((player, idx) => (
+            <motion.article
+              key={player.id}
+              initial={{ opacity: 0, y: 18, rotateX: 8 }}
+              animate={{ opacity: 1, y: 0, rotateX: 0 }}
+              transition={{ duration: 0.35, delay: idx * 0.04 }}
+              className="group glass-panel relative overflow-hidden p-0"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(88,169,255,0.35),rgba(26,33,77,0.28)_42%,rgba(9,15,33,0.35))]" />
+
+              <div className="relative border-b border-white/10">
+                <div className="aspect-[4/3] overflow-hidden bg-[#0c1531]">
+                  {(player.profilePhoto || player.photos?.[0]) ? (
+                    <button
+                      type="button"
+                      className="h-full w-full"
+                      onClick={() =>
+                        setPreviewImage({
+                          src: player.profilePhoto || player.photos[0],
+                          title: player.name,
+                          subtitle: player.headline || "Football & Futsal Player"
+                        })
+                      }
+                    >
+                      <img
+                        src={player.profilePhoto || player.photos[0]}
+                        alt={player.name}
+                        className={`h-full w-full transition duration-500 group-hover:scale-105 ${imageFitClass(player.profilePhoto || player.photos[0])}`}
+                        style={photoStyle(player)}
+                      />
+                    </button>
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sm text-white/55">No photo</div>
+                  )}
+                </div>
+                <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/45 px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-[#9bc8ff] backdrop-blur">
+                  {player.availableNow ? "Available Now" : "Busy"}
+                </div>
+              </div>
+
+              <div className="relative p-4">
+                <h3 className="text-xl font-semibold text-white">{player.name}</h3>
+                <p className="mt-1 text-sm text-white/75">{player.headline || "Football & Futsal Player"}</p>
+                <p className="mt-1 text-sm text-white/70">{player.location} | Age {player.age}</p>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(player.positions || []).slice(0, 4).map((pos) => (
+                    <span key={`${player.id}-${pos}`} className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-white/90">
+                      {pos}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-4 grid grid-cols-4 gap-2">
+                  <Metric label="Goals" value={String(player.stats?.goals ?? 0)} />
+                  <Metric label="Assists" value={String(player.stats?.assists ?? 0)} />
+                  <Metric label="Matches" value={String(player.stats?.matches ?? 0)} />
+                  <Metric label="CS" value={String(player.stats?.cleanSheets ?? 0)} />
+                </div>
+
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-xs text-white/60">{player.heightCm} cm | {player.weightKg} kg</p>
+                  <Link href={`/players/${player.slug}`} className="text-sm font-medium text-[#9bc8ff] underline underline-offset-4">
+                    View Profile
+                  </Link>
+                </div>
+              </div>
+            </motion.article>
+          ))}
+        </div>
+      </section>
+
       {compareOpen ? (
-        <section className="glass-panel mt-6 p-5 md:p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Compare Selector</p>
+        <section className="glass-panel mt-8 p-5 md:p-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#9bc8ff]">Compare Engine</p>
           <h2 className="mt-2 text-2xl font-bold text-white">Select Players For Comparison</h2>
-          <p className="mt-2 text-sm text-white/70">Use filters below and pick up to 4 players.</p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-5">
-            <input
-              className="input md:col-span-2"
-              placeholder="Search name, position, location"
-              value={compareSearch}
-              onChange={(e) => setCompareSearch(e.target.value)}
-            />
-            <input
-              className="input"
-              placeholder="Position"
-              value={comparePosition}
-              onChange={(e) => setComparePosition(e.target.value)}
-            />
-            <input
-              className="input"
-              type="number"
-              placeholder="Min age"
-              value={compareMinAge}
-              onChange={(e) => setCompareMinAge(e.target.value)}
-            />
-            <input
-              className="input"
-              type="number"
-              placeholder="Max age"
-              value={compareMaxAge}
-              onChange={(e) => setCompareMaxAge(e.target.value)}
-            />
+            <input className="input md:col-span-2" placeholder="Search compare list" value={compareSearch} onChange={(e) => setCompareSearch(e.target.value)} />
+            <input className="input" placeholder="Position" value={comparePosition} onChange={(e) => setComparePosition(e.target.value)} />
+            <input className="input" type="number" placeholder="Min age" value={compareMinAge} onChange={(e) => setCompareMinAge(e.target.value)} />
+            <input className="input" type="number" placeholder="Max age" value={compareMaxAge} onChange={(e) => setCompareMaxAge(e.target.value)} />
           </div>
 
           <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
@@ -256,113 +394,17 @@ export default function EcbHubPage() {
               return (
                 <label
                   key={`pick-${player.id}`}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 ${selected ? "border-pitch-300/60 bg-pitch-300/10" : "border-white/10 bg-white/5"}`}
+                  className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 ${selected ? "border-[#9bc8ff]/60 bg-[#9bc8ff]/10" : "border-white/10 bg-white/5"}`}
                 >
-                  <span className="text-sm text-white">
-                    {player.name} <span className="text-white/60">({player.age})</span>
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    disabled={disableAdd}
-                    onChange={() => toggleSelection(player.id)}
-                  />
+                  <span className="text-sm text-white">{player.name} <span className="text-white/60">({player.age})</span></span>
+                  <input type="checkbox" checked={selected} disabled={disableAdd} onChange={() => toggleSelection(player.id)} />
                 </label>
               );
             })}
           </div>
-        </section>
-      ) : null}
 
-      <section className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {loading ? <p className="text-white/70">Loading player profiles...</p> : null}
-        {!loading && error ? <p className="text-red-300">{error}</p> : null}
-        {!loading && players.length === 0 ? <p className="text-white/70">No players found with this filter.</p> : null}
-
-        {players.map((player, idx) => (
-          <motion.article
-            key={player.id}
-            initial={{ opacity: 0, y: 18, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.35, delay: idx * 0.04 }}
-            className={`group glass-panel relative overflow-hidden p-0 ${selectedPlayerIds.includes(player.id) ? "ring-2 ring-pitch-300/70" : ""}`}
-          >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_8%,rgba(255,255,255,0.13),transparent_30%),linear-gradient(170deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02))]" />
-
-            <div className="relative overflow-hidden border-b border-white/10">
-              <div className="aspect-[4/3] w-full bg-black/20">
-                {player.profilePhoto || player.photos?.[0] ? (
-                  <button
-                    type="button"
-                    className="h-full w-full"
-                    onClick={() =>
-                      setPreviewImage({
-                        src: player.profilePhoto || player.photos[0],
-                        title: `${player.name} | ${player.headline || "Football & Futsal Player"}`
-                      })
-                    }
-                  >
-                    <img
-                      src={player.profilePhoto || player.photos[0]}
-                      alt={`${player.name} profile`}
-                      className={`h-full w-full transition duration-500 group-hover:scale-105 ${imageFitClass(player.profilePhoto || player.photos[0])}`}
-                      style={photoStyle(player)}
-                    />
-                  </button>
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-sm text-white/55">No photo</div>
-                )}
-              </div>
-
-              <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-pitch-200 backdrop-blur">
-                {player.availableNow ? "Available Now" : "Busy"}
-              </div>
-            </div>
-
-            <div className="relative p-4">
-              <h2 className="text-xl font-semibold text-white">{player.name}</h2>
-              <p className="mt-1 text-sm text-white/70">{player.headline || "Football & Futsal Player"}</p>
-              <p className="mt-2 text-sm text-white/75">{player.location} | Age {player.age}</p>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                {(player.positions || []).slice(0, 4).map((pos) => (
-                  <span key={`${player.id}-${pos}`} className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-white/85">
-                    {pos}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                <Metric label="Goals" value={String(player.stats?.goals ?? 0)} />
-                <Metric label="Assists" value={String(player.stats?.assists ?? 0)} />
-                <Metric label="Matches" value={String(player.stats?.matches ?? 0)} />
-              </div>
-
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-xs text-white/60">{player.heightCm} cm | {player.weightKg} kg</p>
-                <Link href={`/players/${player.slug}`} className="text-sm font-medium text-pitch-200 underline underline-offset-4">
-                  View profile
-                </Link>
-              </div>
-            </div>
-          </motion.article>
-        ))}
-      </section>
-
-      <section className="mt-8 space-y-4">
-        <div className="glass-panel p-5 md:p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Comparison Studio</p>
-          <h2 className="mt-2 text-2xl font-bold text-white">Player Comparison Table And Graphs</h2>
-          <p className="mt-2 text-sm text-white/70">
-            Select up to 4 players from cards above. Compare common stats and positional profile side by side.
-          </p>
-        </div>
-
-        {selectedPlayers.length === 0 ? (
-          <div className="glass-panel p-5 text-sm text-white/70">Select players to start comparison.</div>
-        ) : (
-          <div className="grid gap-5 xl:grid-cols-[1.1fr_1fr]">
-            <div className="glass-panel overflow-hidden">
+          <div className="mt-6 grid gap-5 xl:grid-cols-[1.1fr_1fr]">
+            <div className="glass-soft overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px] text-left text-sm">
                   <thead className="bg-white/10 text-xs uppercase tracking-[0.14em] text-white/70">
@@ -372,7 +414,6 @@ export default function EcbHubPage() {
                       <th className="px-4 py-3">Assists</th>
                       <th className="px-4 py-3">Matches</th>
                       <th className="px-4 py-3">Clean Sheets</th>
-                      <th className="px-4 py-3">Positions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -383,7 +424,6 @@ export default function EcbHubPage() {
                         <td className="px-4 py-3 text-white/85">{player.stats?.assists ?? 0}</td>
                         <td className="px-4 py-3 text-white/85">{player.stats?.matches ?? 0}</td>
                         <td className="px-4 py-3 text-white/85">{player.stats?.cleanSheets ?? 0}</td>
-                        <td className="px-4 py-3 text-white/80">{(player.positions || []).join(", ") || "-"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -391,52 +431,140 @@ export default function EcbHubPage() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="glass-panel p-4">
-                <p className="text-sm font-semibold text-white">Stats Visualization</p>
-                <div className="mt-3 space-y-4">
-                  {selectedPlayers.map((player) => (
-                    <div key={`bars-${player.id}`} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <p className="mb-2 text-sm font-medium text-white">{player.name}</p>
-                      <Bar label="Goals" value={player.stats?.goals ?? 0} max={maxMetric} />
-                      <Bar label="Assists" value={player.stats?.assists ?? 0} max={maxMetric} />
-                      <Bar label="Matches" value={player.stats?.matches ?? 0} max={maxMetric} />
-                      <Bar label="Clean Sheets" value={player.stats?.cleanSheets ?? 0} max={maxMetric} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="glass-panel p-4">
-                <p className="text-sm font-semibold text-white">Common Positions</p>
-                <div className="mt-3 space-y-2">
-                  {commonPositions.length === 0 ? (
-                    <p className="text-sm text-white/65">No shared position tags yet.</p>
-                  ) : (
-                    commonPositions.map(([pos, count]) => (
-                      <div key={`pos-${pos}`} className="flex items-center gap-3">
-                        <p className="w-16 text-xs text-white/75">{pos}</p>
-                        <div className="h-2 flex-1 rounded-full bg-white/10">
-                          <div
-                            className="h-2 rounded-full bg-pitch-300"
-                            style={{ width: `${Math.max(8, (count / selectedPlayers.length) * 100)}%` }}
-                          />
-                        </div>
-                        <p className="w-8 text-right text-xs text-white/80">{count}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
+            <div className="glass-soft p-4">
+              <p className="text-sm font-semibold text-white">Stat Graph</p>
+              <div className="mt-3 space-y-4">
+                {selectedPlayers.map((player) => (
+                  <div key={`bars-${player.id}`} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    <p className="mb-2 text-sm font-medium text-white">{player.name}</p>
+                    <Bar label="Goals" value={player.stats?.goals ?? 0} max={maxMetric} />
+                    <Bar label="Assists" value={player.stats?.assists ?? 0} max={maxMetric} />
+                    <Bar label="Matches" value={player.stats?.matches ?? 0} max={maxMetric} />
+                    <Bar label="Clean Sheets" value={player.stats?.cleanSheets ?? 0} max={maxMetric} />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        )}
+        </section>
+      ) : null}
+
+      <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_1.25fr]">
+        <div className="glass-panel p-5 md:p-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#9bc8ff]">Player Timeline</p>
+          <h2 className="mt-2 text-2xl font-bold text-white">Post Current Updates</h2>
+
+          {canPost ? (
+            <div className="mt-4 space-y-3">
+              <select className="input" value={composer.type} onChange={(e) => setComposer((s) => ({ ...s, type: e.target.value as any }))}>
+                <option value="general">General Update</option>
+                <option value="achievement">Achievement</option>
+                <option value="match_update">Match Update</option>
+              </select>
+              <input className="input" placeholder="Post title" value={composer.title} onChange={(e) => setComposer((s) => ({ ...s, title: e.target.value }))} />
+              <textarea className="input min-h-28" placeholder="Write your update" value={composer.content} onChange={(e) => setComposer((s) => ({ ...s, content: e.target.value }))} />
+
+              <input
+                className="input"
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    await uploadPostImage(file);
+                  } catch (err: any) {
+                    setTimelineError(err?.message || "Could not upload image.");
+                  } finally {
+                    e.currentTarget.value = "";
+                  }
+                }}
+              />
+
+              {composer.image ? (
+                <div className="relative overflow-hidden rounded-xl border border-white/10">
+                  <img src={composer.image} alt="Post preview" className="h-40 w-full object-cover" />
+                  <button type="button" className="absolute right-2 top-2 rounded bg-black/70 px-2 py-1 text-xs text-white" onClick={() => setComposer((s) => ({ ...s, image: "" }))}>
+                    Remove
+                  </button>
+                </div>
+              ) : null}
+
+              <button type="button" className="btn-primary" onClick={publishPost} disabled={postSaving || !composer.title || !composer.content}>
+                {postSaving ? "Publishing..." : "Publish To Timeline"}
+              </button>
+              {timelineError ? <p className="text-xs text-red-300">{timelineError}</p> : null}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-white/70">Login as a player to post timeline updates.</p>
+          )}
+        </div>
+
+        <div className="glass-panel p-5 md:p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#9bc8ff]">Live Feed</p>
+              <h2 className="mt-1 text-2xl font-bold text-white">All Player Updates</h2>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {timelineLoading ? <p className="text-white/70">Loading timeline...</p> : null}
+            {!timelineLoading && posts.length === 0 ? <p className="text-white/70">No updates posted yet.</p> : null}
+
+            {posts.map((post, idx) => (
+              <motion.article
+                key={post.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: idx * 0.03 }}
+                className="rounded-2xl border border-white/10 bg-white/5 p-4"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    {post.author.profilePhoto ? (
+                      <img src={post.author.profilePhoto} alt={post.author.name} className="h-9 w-9 rounded-full object-cover" style={avatarStyle(post.author.profilePhotoMeta)} />
+                    ) : (
+                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#9bc8ff] text-black">{post.author.name.slice(0, 1).toUpperCase()}</span>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-white">{post.author.name}</p>
+                      <p className="text-xs text-white/60">{formatDateTime(post.createdAt)}</p>
+                    </div>
+                  </div>
+                  <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-[#9bc8ff]">
+                    {post.type.replace("_", " ")}
+                  </span>
+                </div>
+
+                <h3 className="mt-3 text-lg font-semibold text-white">{post.title}</h3>
+                <p className="mt-1 text-sm text-white/80">{post.content}</p>
+
+                {post.image ? (
+                  <button
+                    type="button"
+                    className="mt-3 w-full overflow-hidden rounded-xl border border-white/10"
+                    onClick={() => setPreviewImage({ src: post.image || "", title: post.title, subtitle: post.author.name })}
+                  >
+                    <img src={post.image} alt={post.title} className="h-48 w-full object-cover" />
+                  </button>
+                ) : null}
+
+                {post.author.slug ? (
+                  <Link href={`/players/${post.author.slug}`} className="mt-3 inline-block text-xs text-[#9bc8ff] underline underline-offset-4">
+                    View Player Profile
+                  </Link>
+                ) : null}
+              </motion.article>
+            ))}
+          </div>
+        </div>
       </section>
 
       <AnimatePresence>
         {previewImage ? (
           <motion.div
-            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
+            className="fixed inset-0 z-[90] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -444,25 +572,19 @@ export default function EcbHubPage() {
           >
             <motion.div
               className="glass-panel relative w-full max-w-5xl overflow-hidden p-0"
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 8 }}
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <button
-                type="button"
-                className="absolute right-3 top-3 z-10 rounded-full bg-black/60 px-3 py-1 text-sm text-white hover:bg-black/80"
-                onClick={() => setPreviewImage(null)}
-              >
+              <button type="button" className="absolute right-3 top-3 z-10 rounded-full bg-black/60 px-3 py-1 text-sm text-white hover:bg-black/80" onClick={() => setPreviewImage(null)}>
                 Close
               </button>
-              <div className="max-h-[78vh] w-full bg-black/35">
-                <img src={previewImage.src} alt={previewImage.title} className="h-full max-h-[78vh] w-full object-contain" />
-              </div>
+              <img src={previewImage.src} alt={previewImage.title} className="max-h-[78vh] w-full object-contain bg-black/30" />
               <div className="border-t border-white/10 p-4">
-                <p className="text-sm font-medium text-white">{previewImage.title}</p>
-                <p className="mt-1 text-xs text-white/65">Press ESC to close</p>
+                <p className="text-base font-semibold text-white">{previewImage.title}</p>
+                {previewImage.subtitle ? <p className="mt-1 text-xs text-[#9bc8ff]">{previewImage.subtitle}</p> : null}
               </div>
             </motion.div>
           </motion.div>
@@ -470,28 +592,6 @@ export default function EcbHubPage() {
       </AnimatePresence>
     </main>
   );
-}
-
-function Bar({ label, value, max }: { label: string; value: number; max: number }) {
-  return (
-    <div className="mb-2">
-      <div className="mb-1 flex items-center justify-between text-xs text-white/75">
-        <span>{label}</span>
-        <span>{value}</span>
-      </div>
-      <div className="h-2 rounded-full bg-white/10">
-        <div className="h-2 rounded-full bg-pitch-300 transition-all" style={{ width: `${Math.max(4, (value / max) * 100)}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function photoStyle(player: HubPlayer) {
-  if (!player.profilePhoto) return undefined;
-  const x = player.profilePhotoMeta?.x ?? 50;
-  const y = player.profilePhotoMeta?.y ?? 50;
-  const zoom = player.profilePhotoMeta?.zoom ?? 1;
-  return { objectPosition: `${x}% ${y}%`, transform: `scale(${zoom})` };
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
@@ -503,8 +603,49 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
+function Bar({ label, value, max }: { label: string; value: number; max: number }) {
+  return (
+    <div className="mb-2">
+      <div className="mb-1 flex items-center justify-between text-xs text-white/75">
+        <span>{label}</span>
+        <span>{value}</span>
+      </div>
+      <div className="h-2 rounded-full bg-white/10">
+        <div className="h-2 rounded-full bg-[#75b8ff] transition-all" style={{ width: `${Math.max(4, (value / max) * 100)}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function imageFitClass(url: string) {
   const lower = String(url || "").toLowerCase();
   const isIllustration = lower.includes(".png") || lower.includes(".svg") || lower.includes("illustration");
   return isIllustration ? "object-contain p-2" : "object-cover";
+}
+
+function photoStyle(player: HubPlayer) {
+  if (!player.profilePhoto) return undefined;
+  const x = player.profilePhotoMeta?.x ?? 50;
+  const y = player.profilePhotoMeta?.y ?? 50;
+  const zoom = player.profilePhotoMeta?.zoom ?? 1;
+  return { objectPosition: `${x}% ${y}%`, transform: `scale(${zoom})` };
+}
+
+function avatarStyle(meta?: { x?: number; y?: number; zoom?: number }) {
+  const x = meta?.x ?? 50;
+  const y = meta?.y ?? 50;
+  const zoom = meta?.zoom ?? 1;
+  return { objectPosition: `${x}% ${y}%`, transform: `scale(${zoom})` };
+}
+
+function formatDateTime(input: string) {
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return input;
+  return date.toLocaleString("en-GB", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
