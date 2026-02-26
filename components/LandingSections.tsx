@@ -206,7 +206,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
             key="boot-loader"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.35 } }}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-[radial-gradient(circle_at_50%_50%,rgba(19,121,66,0.4),rgba(1,9,5,0.95)_55%)] backdrop-blur-md"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-[radial-gradient(circle_at_50%_50%,rgba(61,111,245,0.35),rgba(8,13,32,0.95)_55%)] backdrop-blur-md"
           >
             <div className="glass-panel flex flex-col items-center gap-4 px-10 py-8">
               <span className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/25 bg-white/10">
@@ -220,7 +220,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
         ) : null}
       </AnimatePresence>
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_15%,rgba(26,219,101,0.35),transparent_30%),radial-gradient(circle_at_95%_2%,rgba(255,255,255,0.12),transparent_32%),linear-gradient(122deg,#021108_0%,#083721_44%,#03110a_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_15%,rgba(95,141,255,0.3),transparent_30%),radial-gradient(circle_at_95%_2%,rgba(191,82,112,0.2),transparent_35%),linear-gradient(122deg,#060d20_0%,#0f2147_44%,#070d1f_100%)]" />
 
       <section className="relative mx-auto grid min-h-[86vh] max-w-6xl gap-8 px-4 py-20 lg:grid-cols-[1.15fr_1fr]">
         <div className="flex flex-col justify-center">
@@ -613,42 +613,6 @@ export default function LandingSections({ previewData = null, previewMode = fals
         </div>
       </section>
       ) : null}
-
-      <section className="relative mx-auto mt-12 max-w-6xl px-4">
-        <div className="glass-panel p-5 md:p-7">
-          <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Open 3D Resources</p>
-          <h3 className="mt-2 text-2xl font-bold text-white">Community Sources You Can Plug Into This Project</h3>
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <a
-              href="https://threejs.org/"
-              target="_blank"
-              rel="noreferrer"
-              className="glass-soft p-4 transition hover:-translate-y-1 hover:bg-white/10"
-            >
-              <p className="text-sm font-semibold text-white">Three.js</p>
-              <p className="mt-1 text-xs text-white/70">Web 3D library for custom football scenes and interactions.</p>
-            </a>
-            <a
-              href="https://community.spline.design/"
-              target="_blank"
-              rel="noreferrer"
-              className="glass-soft p-4 transition hover:-translate-y-1 hover:bg-white/10"
-            >
-              <p className="text-sm font-semibold text-white">Spline Community</p>
-              <p className="mt-1 text-xs text-white/70">Remix-ready interactive 3D scenes from design community.</p>
-            </a>
-            <a
-              href="https://poly.pizza/"
-              target="_blank"
-              rel="noreferrer"
-              className="glass-soft p-4 transition hover:-translate-y-1 hover:bg-white/10"
-            >
-              <p className="text-sm font-semibold text-white">Poly Pizza</p>
-              <p className="mt-1 text-xs text-white/70">Free low-poly GLTF assets including football/stadium models.</p>
-            </a>
-          </div>
-        </div>
-      </section>
 
       <section className="relative mx-auto mt-14 max-w-6xl px-4">
         <motion.div

@@ -49,8 +49,8 @@ export default function NavBar() {
   const userName = session?.user?.name || "Player";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[linear-gradient(135deg,rgba(2,12,7,0.92),rgba(4,33,19,0.86))] backdrop-blur-xl">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,transparent,#9dffcb,transparent)] opacity-70" />
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-[linear-gradient(135deg,rgba(6,12,30,0.94),rgba(12,23,54,0.9))] backdrop-blur-xl">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,transparent,#8db1ff,transparent)] opacity-70" />
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2.5 sm:px-4">
         <Link href="/" className="group inline-flex items-center gap-2 font-semibold tracking-wide text-white">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-[0_0_24px_rgba(125,255,179,0.18)]">
