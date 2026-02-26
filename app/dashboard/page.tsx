@@ -33,10 +33,16 @@ export default async function DashboardPage() {
               Register New Player
             </Link>
           ) : (
-            <a href="#player-profile-editor" className="btn-muted">
-              <WhistleIcon className="text-pitch-200" />
-              Customize Profile
-            </a>
+            <>
+              <a href="#player-profile-editor" className="btn-muted">
+                <WhistleIcon className="text-pitch-200" />
+                Customize Profile
+              </a>
+              <Link href="/chat" className="btn-muted">
+                <WhistleIcon className="text-pitch-200" />
+                Open Player Chat
+              </Link>
+            </>
           )}
           {isAdmin ? (
             <Link href="/admin/media" className="btn-muted">

@@ -10,12 +10,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
     }
 
-    const { folder = "ecb-lightforce/players", purpose = "profile" } = await request.json().catch(() => ({}));
+    const {
+      folder = "ecb-lightforce/players",
+      purpose = "profile",
+      transformation = ""
+    } = await request.json().catch(() => ({}));
     const { cloudName, apiKey, apiSecret } = getCloudinaryConfig();
 
     const timestamp = String(Math.floor(Date.now() / 1000));
     const publicId = `${session.user.id}-${purpose}-${Date.now()}`;
-    const signParams = { folder, public_id: publicId, timestamp };
+    const signParams: Record<string, string> = { folder, public_id: publicId, timestamp };
+    if (transformation && typeof transformation === "string") {
+      signParams.transformation = transformation;
+    }
     const signature = createCloudinarySignature(signParams, apiSecret);
 
     return NextResponse.json({
@@ -24,7 +31,8 @@ export async function POST(request: Request) {
       timestamp,
       folder,
       publicId,
-      signature
+      signature,
+      transformation: signParams.transformation || ""
     });
   } catch (error: any) {
     const message = String(error?.message || "");

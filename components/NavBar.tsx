@@ -79,6 +79,11 @@ export default function NavBar() {
               <Link href="/dashboard" className="rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
                 Dashboard
               </Link>
+              {session?.user?.role === "player" ? (
+                <Link href="/chat" className="rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
+                  Chat
+                </Link>
+              ) : null}
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/login" })}
@@ -131,6 +136,11 @@ export default function NavBar() {
                 <Link href="/dashboard" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
                   Dashboard
                 </Link>
+                {session?.user?.role === "player" ? (
+                  <Link href="/chat" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
+                    Chat
+                  </Link>
+                ) : null}
                 <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                   {avatar ? (
                     <div className="h-8 w-8 overflow-hidden rounded-full border border-white/20">
