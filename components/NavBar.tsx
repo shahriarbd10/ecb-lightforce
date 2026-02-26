@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
+import { BallIcon, BootIcon } from "@/components/FootballIcons";
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -45,7 +46,10 @@ export default function NavBar() {
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-black/60 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="font-semibold tracking-wide text-white">
+        <Link href="/" className="inline-flex items-center gap-2 font-semibold tracking-wide text-white">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-white/10">
+            <BallIcon className="text-pitch-200" />
+          </span>
           ECB Lightforce
         </Link>
 
@@ -64,6 +68,7 @@ export default function NavBar() {
                 onClick={() => signOut({ callbackUrl: "/login" })}
                 className="rounded-full border border-white/20 px-3 py-1.5 text-white/85 hover:bg-white/10"
               >
+                <BootIcon className="mr-1 inline-block text-pitch-200" />
                 Logout
               </button>
               <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-2 py-1">
@@ -88,6 +93,7 @@ export default function NavBar() {
                 Join
               </Link>
               <Link href="/login?callbackUrl=/dashboard" className="rounded-full bg-pitch-400 px-4 py-1.5 font-medium text-black">
+                <BallIcon className="mr-1 inline-block" />
                 Login
               </Link>
             </>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSession } from "next-auth/react";
+import { BallIcon, BootIcon, WhistleIcon } from "@/components/FootballIcons";
 
 type HubPlayer = {
   id: string;
@@ -266,7 +267,12 @@ export default function EcbHubPage() {
         <div className="pointer-events-none absolute -bottom-24 left-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
 
         <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Elite Player Hub</p>
-        <h1 className="mt-2 text-4xl font-black tracking-tight text-white md:text-6xl">Lightforce Hub</h1>
+        <h1 className="mt-2 inline-flex items-center gap-3 text-4xl font-black tracking-tight text-white md:text-6xl">
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/10 md:h-14 md:w-14">
+            <BallIcon size={24} className="text-pitch-200 md:h-7 md:w-7" />
+          </span>
+          Lightforce Hub
+        </h1>
         <p className="mt-3 max-w-3xl text-white/75">
           Premium player discovery, side-by-side comparison, and a live timeline where players publish achievements and match updates.
         </p>
@@ -286,6 +292,7 @@ export default function EcbHubPage() {
           <div className="flex items-center gap-3">
             <p className="text-xs text-white/60">{players.length} players visible</p>
             <button type="button" className="btn-primary" onClick={() => setCompareOpen((v) => !v)}>
+              <WhistleIcon />
               {compareOpen ? "Close Compare" : "Compare Players"}
             </button>
           </div>
@@ -365,7 +372,8 @@ export default function EcbHubPage() {
 
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-xs text-white/60">{player.heightCm} cm | {player.weightKg} kg</p>
-                  <Link href={`/players/${player.slug}`} className="text-sm font-medium text-pitch-200 underline underline-offset-4">
+                  <Link href={`/players/${player.slug}`} className="inline-flex items-center gap-1 text-sm font-medium text-pitch-200 underline underline-offset-4">
+                    <BootIcon size={13} />
                     View Profile
                   </Link>
                 </div>
@@ -491,6 +499,7 @@ export default function EcbHubPage() {
               ) : null}
 
               <button type="button" className="btn-primary" onClick={publishPost} disabled={postSaving || !composer.title || !composer.content}>
+                <BallIcon />
                 {postSaving ? "Publishing..." : "Publish To Timeline"}
               </button>
               {timelineError ? <p className="text-xs text-red-300">{timelineError}</p> : null}

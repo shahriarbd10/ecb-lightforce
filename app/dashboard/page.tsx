@@ -6,6 +6,7 @@ import PlayerProfileEditor from "@/components/PlayerProfileEditor";
 import AdminMediaManager from "@/components/AdminMediaManager";
 import AdminLandingCustomizer from "@/components/AdminLandingCustomizer";
 import AdminPlayerManager from "@/components/AdminPlayerManager";
+import { BallIcon, WhistleIcon } from "@/components/FootballIcons";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -23,19 +24,23 @@ export default async function DashboardPage() {
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link href="/ecb-hub" className="btn-primary">
+            <BallIcon />
             Open Lightforce Hub
           </Link>
           {isAdmin ? (
             <Link href="/register" className="btn-muted">
+              <WhistleIcon className="text-pitch-200" />
               Register New Player
             </Link>
           ) : (
             <a href="#player-profile-editor" className="btn-muted">
+              <WhistleIcon className="text-pitch-200" />
               Customize Profile
             </a>
           )}
           {isAdmin ? (
             <Link href="/admin/media" className="btn-muted">
+              <WhistleIcon className="text-pitch-200" />
               Admin Media
             </Link>
           ) : null}

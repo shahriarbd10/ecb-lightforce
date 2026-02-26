@@ -43,11 +43,33 @@ body {
 }
 
 .btn-primary {
-  @apply rounded-xl bg-pitch-400 px-4 py-2 font-semibold text-black transition hover:bg-pitch-300;
+  @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 font-semibold text-black transition duration-200;
+  border: 1px solid rgba(120, 255, 182, 0.45);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.35), transparent 36%),
+    linear-gradient(140deg, #7affb5 0%, #28dc7b 55%, #11b660 100%);
+  box-shadow: 0 10px 26px rgba(17, 182, 96, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transform: translateY(0);
 }
 
 .btn-muted {
-  @apply rounded-xl border border-white/15 px-4 py-2 text-white/85 transition hover:bg-white/10;
+  @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 text-white/90 transition duration-200;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background:
+    radial-gradient(circle at 15% 8%, rgba(255, 255, 255, 0.2), transparent 35%),
+    rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transform: translateY(0);
+}
+
+.btn-primary:hover,
+.btn-muted:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary:active,
+.btn-muted:active {
+  transform: translateY(0);
 }
 
 .glass-panel {
