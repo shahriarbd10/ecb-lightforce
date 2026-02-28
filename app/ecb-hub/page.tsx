@@ -260,10 +260,7 @@ export default function EcbHubPage() {
     <main className="container-page relative pb-16">
       <div
         className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(circle at 12% 20%, rgba(255,255,255,0.78), transparent 32%), radial-gradient(circle at 88% 10%, rgba(8,131,149,0.14), transparent 32%), linear-gradient(130deg, #f8fafc 0%, #eef2f5 52%, #e6ecef 100%)"
-        }}
+        style={{ background: "var(--hub-overlay)" }}
       />
 
       <section className="glass-panel relative overflow-hidden p-6 md:p-8">
@@ -329,10 +326,7 @@ export default function EcbHubPage() {
               >
                 <div
                   className="pointer-events-none absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(160deg, rgba(242,247,161,0.12), rgba(8,131,149,0.12) 42%, rgba(7,25,82,0.2))"
-                  }}
+                  style={{ background: "var(--hub-card-overlay)" }}
                 />
                 <div className="relative border-b border-white/10">
                   <div className="aspect-[5/4] overflow-hidden bg-white/10">

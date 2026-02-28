@@ -208,10 +208,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.35 } }}
             className="fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-md"
-            style={{
-              background:
-                "radial-gradient(circle at 50% 50%, rgba(53,162,159,0.28), rgba(7,25,82,0.92) 55%)"
-            }}
+            style={{ background: "var(--boot-overlay)" }}
           >
             <div className="glass-panel flex flex-col items-center gap-4 px-10 py-8">
               <span className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/25 bg-white/10">
@@ -227,10 +224,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
 
       <div
         className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at 10% 15%, rgba(255,255,255,0.75), transparent 28%), radial-gradient(circle at 95% 2%, rgba(53,162,159,0.16), transparent 30%), linear-gradient(122deg, #f8fafc 0%, #eef2f5 44%, #e6ecef 100%)"
-        }}
+        style={{ background: "var(--landing-overlay)" }}
       />
 
       <section className="relative mx-auto grid min-h-[86vh] max-w-6xl gap-8 px-4 py-20 lg:grid-cols-[1.15fr_1fr]">

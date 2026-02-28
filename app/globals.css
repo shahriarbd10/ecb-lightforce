@@ -26,6 +26,19 @@ html[data-theme="light"] {
   --button-muted-text: #071952;
   --shadow-strong: 0 18px 44px rgba(7, 25, 82, 0.12);
   --shadow-soft: 0 12px 28px rgba(7, 25, 82, 0.08);
+  --page-bg-image: radial-gradient(circle at 8% 8%, rgba(255, 255, 255, 0.85), transparent 28%),
+    radial-gradient(circle at 100% 0%, rgba(53, 162, 159, 0.14), transparent 30%),
+    linear-gradient(180deg, #f7f9fb 0%, #eef2f5 52%, #e7edf2 100%);
+  --header-bg: linear-gradient(135deg, rgba(250, 252, 255, 0.94), rgba(240, 244, 247, 0.94));
+  --header-glow: 0 0 24px color-mix(in srgb, var(--color-aqua) 24%, transparent);
+  --landing-overlay: radial-gradient(circle at 10% 15%, rgba(255,255,255,0.75), transparent 28%),
+    radial-gradient(circle at 95% 2%, rgba(53,162,159,0.16), transparent 30%),
+    linear-gradient(122deg, #f8fafc 0%, #eef2f5 44%, #e6ecef 100%);
+  --boot-overlay: radial-gradient(circle at 50% 50%, rgba(53,162,159,0.28), rgba(7,25,82,0.92) 55%);
+  --hub-overlay: radial-gradient(circle at 12% 20%, rgba(255,255,255,0.78), transparent 32%),
+    radial-gradient(circle at 88% 10%, rgba(8,131,149,0.14), transparent 32%),
+    linear-gradient(130deg, #f8fafc 0%, #eef2f5 52%, #e6ecef 100%);
+  --hub-card-overlay: linear-gradient(160deg, rgba(242,247,161,0.12), rgba(8,131,149,0.12) 42%, rgba(7,25,82,0.2));
 }
 
 html[data-theme="dark"] {
@@ -51,6 +64,19 @@ html[data-theme="dark"] {
   --button-muted-text: #eef4ff;
   --shadow-strong: 0 18px 44px rgba(0, 0, 0, 0.34);
   --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.24);
+  --page-bg-image: radial-gradient(circle at 12% 10%, rgba(53, 162, 159, 0.16), transparent 24%),
+    radial-gradient(circle at 88% 0%, rgba(8, 131, 149, 0.14), transparent 28%),
+    linear-gradient(180deg, #04112d 0%, #07183d 48%, #051437 100%);
+  --header-bg: linear-gradient(135deg, rgba(5, 20, 55, 0.94), rgba(8, 39, 72, 0.94));
+  --header-glow: 0 0 24px color-mix(in srgb, var(--color-teal) 28%, transparent);
+  --landing-overlay: radial-gradient(circle at 10% 15%, rgba(53,162,159,0.18), transparent 24%),
+    radial-gradient(circle at 95% 2%, rgba(8,131,149,0.16), transparent 28%),
+    linear-gradient(122deg, #04112d 0%, #082548 44%, #051437 100%);
+  --boot-overlay: radial-gradient(circle at 50% 50%, rgba(53,162,159,0.22), rgba(4,17,45,0.96) 58%);
+  --hub-overlay: radial-gradient(circle at 12% 20%, rgba(53,162,159,0.14), transparent 26%),
+    radial-gradient(circle at 88% 10%, rgba(8,131,149,0.12), transparent 30%),
+    linear-gradient(130deg, #04112d 0%, #082548 52%, #051437 100%);
+  --hub-card-overlay: linear-gradient(160deg, rgba(242,247,161,0.08), rgba(53,162,159,0.1) 42%, rgba(4,17,45,0.38));
 }
 
 html {
@@ -65,9 +91,7 @@ body {
   color: var(--page-text);
   font-family: var(--font-body), "Segoe UI", sans-serif;
   letter-spacing: 0.01em;
-  background-image: radial-gradient(circle at 8% 8%, rgba(255, 255, 255, 0.85), transparent 28%),
-    radial-gradient(circle at 100% 0%, rgba(53, 162, 159, 0.14), transparent 30%),
-    linear-gradient(180deg, #f7f9fb 0%, #eef2f5 52%, #e7edf2 100%);
+  background-image: var(--page-bg-image);
 }
 
 h1,
@@ -287,6 +311,18 @@ html[data-theme="light"] :where(.border-pitch-300\/40, .border-pitch-300\/45, .b
 
 html[data-theme="light"] :where(.bg-pitch-400, .bg-pitch-300) {
   background-color: var(--color-navy) !important;
+}
+
+html[data-theme="dark"] .glass-panel {
+  background: linear-gradient(138deg, rgba(10, 19, 58, 0.9), rgba(8, 39, 72, 0.82));
+}
+
+html[data-theme="dark"] .glass-soft {
+  background: linear-gradient(146deg, rgba(8, 39, 72, 0.82), rgba(6, 28, 55, 0.72));
+}
+
+html[data-theme="dark"] .skeleton {
+  background: linear-gradient(110deg, rgba(255, 255, 255, 0.06) 8%, rgba(83, 214, 207, 0.18) 18%, rgba(255, 255, 255, 0.06) 33%);
 }
 
 @media (max-width: 640px) {

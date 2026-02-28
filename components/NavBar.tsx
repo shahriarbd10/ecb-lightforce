@@ -95,10 +95,7 @@ export default function NavBar() {
   return (
     <header
       className="sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl"
-      style={{
-        background:
-          "linear-gradient(135deg, rgba(250,252,255,0.94), rgba(240,244,247,0.94))"
-      }}
+      style={{ background: "var(--header-bg)" }}
     >
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-[2px] opacity-70"
@@ -108,7 +105,7 @@ export default function NavBar() {
         <Link href="/" className="group inline-flex items-center gap-2 font-semibold tracking-wide text-white">
           <span
             className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10"
-            style={{ boxShadow: "0 0 24px color-mix(in srgb, var(--color-aqua) 24%, transparent)" }}
+            style={{ boxShadow: "var(--header-glow)" }}
           >
             <BallIcon className="text-pitch-200" />
           </span>
