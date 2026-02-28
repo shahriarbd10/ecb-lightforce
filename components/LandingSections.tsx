@@ -210,7 +210,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
             className="fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-md"
             style={{
               background:
-                "radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--color-mint) 42%, white), color-mix(in srgb, var(--color-navy) 48%, black) 55%)"
+                "radial-gradient(circle at 50% 50%, rgba(53,162,159,0.28), rgba(7,25,82,0.92) 55%)"
             }}
           >
             <div className="glass-panel flex flex-col items-center gap-4 px-10 py-8">
@@ -229,7 +229,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 10% 15%, rgba(255,255,255,0.3), transparent 30%), radial-gradient(circle at 95% 2%, rgba(236,229,199,0.34), transparent 35%), linear-gradient(122deg, color-mix(in srgb, var(--color-mint) 92%, white) 0%, color-mix(in srgb, var(--color-cream) 88%, white) 44%, color-mix(in srgb, var(--color-taupe) 96%, white) 100%)"
+            "radial-gradient(circle at 10% 15%, rgba(255,255,255,0.75), transparent 28%), radial-gradient(circle at 95% 2%, rgba(53,162,159,0.16), transparent 30%), linear-gradient(122deg, #f8fafc 0%, #eef2f5 44%, #e6ecef 100%)"
         }}
       />
 

@@ -97,7 +97,7 @@ export default function NavBar() {
       className="sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl"
       style={{
         background:
-          "linear-gradient(135deg, color-mix(in srgb, var(--color-cream) 82%, white), color-mix(in srgb, var(--color-mint) 78%, white))"
+          "linear-gradient(135deg, rgba(250,252,255,0.94), rgba(240,244,247,0.94))"
       }}
     >
       <div
@@ -108,7 +108,7 @@ export default function NavBar() {
         <Link href="/" className="group inline-flex items-center gap-2 font-semibold tracking-wide text-white">
           <span
             className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10"
-            style={{ boxShadow: "0 0 24px color-mix(in srgb, var(--color-mint) 32%, transparent)" }}
+            style={{ boxShadow: "0 0 24px color-mix(in srgb, var(--color-aqua) 24%, transparent)" }}
           >
             <BallIcon className="text-pitch-200" />
           </span>

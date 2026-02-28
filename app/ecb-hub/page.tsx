@@ -262,7 +262,7 @@ export default function EcbHubPage() {
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(circle at 12% 20%, rgba(255,255,255,0.26), transparent 32%), radial-gradient(circle at 88% 10%, rgba(236,229,199,0.28), transparent 32%), linear-gradient(130deg, color-mix(in srgb, var(--color-mint) 94%, white) 0%, color-mix(in srgb, var(--color-cream) 92%, white) 52%, color-mix(in srgb, var(--color-taupe) 98%, white) 100%)"
+            "radial-gradient(circle at 12% 20%, rgba(255,255,255,0.78), transparent 32%), radial-gradient(circle at 88% 10%, rgba(8,131,149,0.14), transparent 32%), linear-gradient(130deg, #f8fafc 0%, #eef2f5 52%, #e6ecef 100%)"
         }}
       />
 
@@ -331,7 +331,7 @@ export default function EcbHubPage() {
                   className="pointer-events-none absolute inset-0"
                   style={{
                     background:
-                      "linear-gradient(160deg, rgba(255,255,255,0.08), rgba(53,66,89,0.14) 42%, rgba(53,66,89,0.2))"
+                      "linear-gradient(160deg, rgba(242,247,161,0.12), rgba(8,131,149,0.12) 42%, rgba(7,25,82,0.2))"
                   }}
                 />
                 <div className="relative border-b border-white/10">
