@@ -207,7 +207,11 @@ export default function LandingSections({ previewData = null, previewMode = fals
             key="boot-loader"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.35 } }}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-[radial-gradient(circle_at_50%_50%,rgba(61,111,245,0.35),rgba(8,13,32,0.95)_55%)] backdrop-blur-md"
+            className="fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-md"
+            style={{
+              background:
+                "radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--color-mint) 42%, white), color-mix(in srgb, var(--color-navy) 48%, black) 55%)"
+            }}
           >
             <div className="glass-panel flex flex-col items-center gap-4 px-10 py-8">
               <span className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/25 bg-white/10">
@@ -221,7 +225,13 @@ export default function LandingSections({ previewData = null, previewMode = fals
         ) : null}
       </AnimatePresence>
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_15%,rgba(95,141,255,0.3),transparent_30%),radial-gradient(circle_at_95%_2%,rgba(191,82,112,0.2),transparent_35%),linear-gradient(122deg,#060d20_0%,#0f2147_44%,#070d1f_100%)]" />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 10% 15%, rgba(255,255,255,0.3), transparent 30%), radial-gradient(circle at 95% 2%, rgba(236,229,199,0.34), transparent 35%), linear-gradient(122deg, color-mix(in srgb, var(--color-mint) 92%, white) 0%, color-mix(in srgb, var(--color-cream) 88%, white) 44%, color-mix(in srgb, var(--color-taupe) 96%, white) 100%)"
+        }}
+      />
 
       <section className="relative mx-auto grid min-h-[86vh] max-w-6xl gap-8 px-4 py-20 lg:grid-cols-[1.15fr_1fr]">
         <div className="flex flex-col justify-center">

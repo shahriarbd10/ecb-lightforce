@@ -155,7 +155,7 @@ export default function LiveFeedPage() {
       <section className="glass-panel p-5 md:p-6">
         <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">Live Feed</p>
         <h1 className="font-display mt-1 text-4xl text-white md:text-5xl">Player Timeline</h1>
-        <p className="mt-2 text-sm text-white/75">Facebook-style updates from all players with likes and comments.</p>
+        <p className="mt-2 text-sm text-white/75">The official ECB Lightforce timeline for player updates, match momentum, likes, and comments.</p>
       </section>
 
       {!canPost ? (

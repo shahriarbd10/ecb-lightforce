@@ -258,7 +258,13 @@ export default function EcbHubPage() {
 
   return (
     <main className="container-page relative pb-16">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_20%,rgba(95,141,255,0.24),transparent_32%),radial-gradient(circle_at_88%_10%,rgba(191,82,112,0.14),transparent_32%),linear-gradient(130deg,#060d20_0%,#112957_52%,#070d1f_100%)]" />
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(circle at 12% 20%, rgba(255,255,255,0.26), transparent 32%), radial-gradient(circle at 88% 10%, rgba(236,229,199,0.28), transparent 32%), linear-gradient(130deg, color-mix(in srgb, var(--color-mint) 94%, white) 0%, color-mix(in srgb, var(--color-cream) 92%, white) 52%, color-mix(in srgb, var(--color-taupe) 98%, white) 100%)"
+        }}
+      />
 
       <section className="glass-panel relative overflow-hidden p-6 md:p-8">
         <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-pitch-300/25 blur-3xl" />
@@ -321,9 +327,15 @@ export default function EcbHubPage() {
                 className="w-full text-left"
                 onClick={() => setSelectedPlayer(player)}
               >
-                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(95,141,255,0.2),rgba(13,24,48,0.34)_42%,rgba(7,13,31,0.4))]" />
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(160deg, rgba(255,255,255,0.08), rgba(53,66,89,0.14) 42%, rgba(53,66,89,0.2))"
+                  }}
+                />
                 <div className="relative border-b border-white/10">
-                  <div className="aspect-[5/4] overflow-hidden bg-[#0d1a34]">
+                  <div className="aspect-[5/4] overflow-hidden bg-white/10">
                     {(player.profilePhoto || player.photos?.[0]) ? (
                       <img
                         src={player.profilePhoto || player.photos[0]}
@@ -439,7 +451,7 @@ export default function EcbHubPage() {
           <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">Live Feed Moved</p>
           <h2 className="mt-2 text-2xl font-bold text-white">Timeline Is Now A Dedicated Page</h2>
           <p className="mt-2 text-white/75">
-            Open the full Live Feed page for Facebook-style updates with likes and comments.
+            Open the full Live Feed to follow the ECB Lightforce timeline, player match updates, and community interactions.
           </p>
           <div className="mt-4">
             <Link href="/live-feed" className="btn-primary">

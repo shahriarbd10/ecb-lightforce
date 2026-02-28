@@ -11,6 +11,7 @@ export default function NavBar() {
   const [avatarMeta, setAvatarMeta] = useState({ x: 50, y: 50, zoom: 1 });
   const [menuOpen, setMenuOpen] = useState(false);
   const [chatHasUnread, setChatHasUnread] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
     let mounted = true;
@@ -47,6 +48,11 @@ export default function NavBar() {
   }, [status, session?.user?.id]);
 
   useEffect(() => {
+    const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    setTheme(currentTheme);
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
     let timer: ReturnType<typeof setInterval> | null = null;
 
@@ -76,31 +82,69 @@ export default function NavBar() {
     };
   }, [session?.user?.id, session?.user?.role]);
 
+  function toggleTheme() {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = nextTheme;
+    window.localStorage.setItem("theme", nextTheme);
+    setTheme(nextTheme);
+  }
+
   const isLoggedIn = status === "authenticated" && !!session?.user;
   const userName = session?.user?.name || "Player";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[linear-gradient(135deg,rgba(6,12,30,0.94),rgba(12,23,54,0.9))] backdrop-blur-xl">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,transparent,#8db1ff,transparent)] opacity-70" />
+    <header
+      className="sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl"
+      style={{
+        background:
+          "linear-gradient(135deg, color-mix(in srgb, var(--color-cream) 82%, white), color-mix(in srgb, var(--color-mint) 78%, white))"
+      }}
+    >
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[2px] opacity-70"
+        style={{ background: "linear-gradient(90deg, transparent, var(--color-navy), transparent)" }}
+      />
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2.5 sm:px-4">
         <Link href="/" className="group inline-flex items-center gap-2 font-semibold tracking-wide text-white">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-[0_0_24px_rgba(125,255,179,0.18)]">
+          <span
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10"
+            style={{ boxShadow: "0 0 24px color-mix(in srgb, var(--color-mint) 32%, transparent)" }}
+          >
             <BallIcon className="text-pitch-200" />
           </span>
           <span className="font-display text-[1.45rem] leading-none">ECB Lightforce</span>
         </Link>
 
-        <button
-          type="button"
-          onClick={() => setMenuOpen((v) => !v)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white md:hidden"
-          aria-label="Toggle menu"
-          aria-expanded={menuOpen}
-        >
-          <MenuIcon />
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="inline-flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-2 text-white"
+            aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+          >
+            <ThemeIcon theme={theme} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white"
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+          >
+            <MenuIcon />
+          </button>
+        </div>
 
         <div className="hidden items-center gap-2 text-sm md:flex">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-white/85 transition hover:bg-white/20"
+            aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+          >
+            <ThemeIcon theme={theme} />
+            {theme === "light" ? "Dark" : "Light"}
+          </button>
           <Link href="/ecb-hub" className="rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
             Lightforce Hub
           </Link>
@@ -162,6 +206,14 @@ export default function NavBar() {
       {menuOpen ? (
         <div className="border-t border-white/10 bg-black/40 px-3 py-3 backdrop-blur-xl md:hidden">
           <div className="mx-auto flex max-w-6xl flex-col gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90"
+            >
+              <ThemeIcon theme={theme} />
+              Switch to {theme === "light" ? "dark" : "light"} mode
+            </button>
             <Link href="/ecb-hub" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
               Lightforce Hub
             </Link>
@@ -221,6 +273,30 @@ export default function NavBar() {
         </div>
       ) : null}
     </header>
+  );
+}
+
+function ThemeIcon({ theme }: { theme: "light" | "dark" }) {
+  return theme === "light" ? (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M20 15.5A8 8 0 1 1 8.5 4C8.5 10.2 13.8 15.5 20 15.5Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ) : (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.7" />
+      <path
+        d="M12 2V4.5M12 19.5V22M4.93 4.93L6.7 6.7M17.3 17.3L19.07 19.07M2 12H4.5M19.5 12H22M4.93 19.07L6.7 17.3M17.3 6.7L19.07 4.93"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
