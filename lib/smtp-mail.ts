@@ -86,15 +86,18 @@ async function writeLine(socket: SocketLike, line: string) {
 }
 
 function getMailConfig() {
-  const host = process.env.BREVO_HOST || "smtp-relay.brevo.com";
-  const port = Number(process.env.BREVO_PORT || "587");
-  const user = process.env.BREVO_USER || "";
-  const pass = process.env.BREVO_PASS || "";
-  const sender = process.env.EMAIL_SENDER_EMAIL || "no-reply@ecblightforce.com";
-  const senderName = process.env.EMAIL_SENDER_NAME || "ECB Lightforce";
+  const host = (process.env.BREVO_HOST || "smtp-relay.brevo.com").trim();
+  const port = Number((process.env.BREVO_PORT || "587").trim());
+  const user = (process.env.BREVO_USER || "").trim();
+  const pass = (process.env.BREVO_PASS || "").trim();
+  const sender = (process.env.EMAIL_SENDER_EMAIL || "").trim();
+  const senderName = (process.env.EMAIL_SENDER_NAME || "ECB Lightforce").trim();
 
   if (!host || !port || !user || !pass) {
     throw new Error("Missing Brevo SMTP environment variables");
+  }
+  if (!Number.isFinite(port) || port <= 0) {
+    throw new Error("Invalid BREVO_PORT environment variable");
   }
   if (!sender) {
     throw new Error("Missing EMAIL_SENDER_EMAIL environment variable");

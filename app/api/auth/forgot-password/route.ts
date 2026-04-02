@@ -83,8 +83,19 @@ export async function POST(req: Request) {
       await PasswordResetToken.deleteOne({ _id: tokenDoc._id });
       const reason = err instanceof Error ? err.message : "SMTP send failed";
       console.error("Forgot password SMTP error:", reason);
+
+      const lower = reason.toLowerCase();
+      let hint = "Verify Brevo SMTP configuration.";
+      if (lower.includes("missing") || lower.includes("invalid brevo_port")) {
+        hint = "One or more required Brevo environment variables are missing/invalid.";
+      } else if (lower.includes("535") || lower.includes("auth")) {
+        hint = "Brevo SMTP authentication failed (check BREVO_USER/BREVO_PASS).";
+      } else if (lower.includes("mail from") || lower.includes("sender") || lower.includes("550")) {
+        hint = "Sender email is not accepted by Brevo (verify EMAIL_SENDER_EMAIL in Brevo).";
+      }
+
       return NextResponse.json(
-        { message: "Reset email could not be sent. Verify Brevo SMTP configuration." },
+        { message: `Reset email could not be sent. ${hint}` },
         { status: 502 }
       );
     }
