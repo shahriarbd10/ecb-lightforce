@@ -25,6 +25,8 @@ Vercel-first full-stack football/futsal platform for Bangladesh player discovery
   - embedded video zone
 - Core APIs:
   - `POST /api/register/player`
+  - `POST /api/auth/forgot-password`
+  - `POST /api/auth/reset-password`
   - `GET /api/players`
   - `GET /api/players/[slug]`
   - `GET|PATCH /api/player/profile`
@@ -52,6 +54,14 @@ NEXTAUTH_URL=http://localhost:3000
 CLOUDINARY_CLOUD_NAME=<cloud-name>
 CLOUDINARY_API_KEY=<api-key>
 CLOUDINARY_API_SECRET=<api-secret>
+APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+BREVO_HOST=smtp-relay.brevo.com
+BREVO_PORT=587
+BREVO_USER=<brevo-smtp-user>
+BREVO_PASS=<brevo-smtp-pass>
+EMAIL_SENDER_EMAIL=<verified-sender@example.com>
+EMAIL_SENDER_NAME=ECB Lightforce
 ```
 
 Note: `NEXTAUTH_URL` must match your actual dev port (`http://localhost:3000`, `http://localhost:3100`, etc.).  

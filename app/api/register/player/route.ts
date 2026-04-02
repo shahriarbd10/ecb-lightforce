@@ -6,6 +6,8 @@ import PlayerProfile from "@/lib/models/PlayerProfile";
 import User from "@/lib/models/User";
 import { dbAwareErrorResponse } from "@/lib/api-error";
 import { buildUniqueSlug } from "@/lib/slug";
+import { sendGreetingMail } from "@/lib/greeting-mail";
+import { resolveAppBaseUrl } from "@/lib/app-url";
 
 const registerSchema = z.object({
   name: z.string().min(2).max(80),
@@ -51,6 +53,19 @@ export async function POST(request: Request) {
       achievements: [],
       timeline: []
     });
+
+    const appUrl = resolveAppBaseUrl(request).replace(/\/$/, "");
+    const loginUrl = `${appUrl}/login`;
+    try {
+      await sendGreetingMail({
+        to: data.email.toLowerCase(),
+        name: data.name,
+        loginUrl
+      });
+    } catch (mailError) {
+      const reason = mailError instanceof Error ? mailError.message : "Unknown mail error";
+      console.error("Greeting mail send failed:", reason);
+    }
 
     return NextResponse.json({ message: "Registration successful." }, { status: 201 });
   } catch (error: any) {

@@ -95,6 +95,12 @@ export default function LoginPage() {
               Remember login
             </label>
 
+            <p className="text-right text-sm">
+              <Link href="/forgot-password" className="text-pitch-300 underline">
+                Forgot password?
+              </Link>
+            </p>
+
             {error ? <p className="text-sm text-red-300">{error}</p> : null}
             <button className="btn-primary w-full" disabled={loading}>
               {loading ? "Signing in..." : "Login"}
