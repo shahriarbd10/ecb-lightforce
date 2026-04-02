@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { connectToDatabase } from "@/lib/db";
 import PlayerProfile from "@/lib/models/PlayerProfile";
 import "@/lib/models/User";
@@ -15,29 +16,59 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
   return (
     <main className="container-page">
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        {(p.profilePhoto || (p.photos || [])[0]) ? (
-          <div className="mb-4 overflow-hidden rounded-2xl border border-white/15 bg-white/5">
-            <div className="h-44 w-44 md:h-52 md:w-52">
-              <img
-                src={p.profilePhoto || p.photos[0]}
-                alt={`${p.user?.name || "Player"} profile`}
-                className={`h-full w-full ${imageFitClass(p.profilePhoto || p.photos[0])}`}
-                style={mainPhotoStyle(p)}
-              />
+      <section className="glass-panel relative overflow-hidden p-5 md:p-7">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-pitch-300/20 blur-3xl" />
+        <div className="grid gap-6 md:grid-cols-[230px_1fr] md:items-center">
+          {(p.profilePhoto || (p.photos || [])[0]) ? (
+            <div className="overflow-hidden rounded-2xl border border-white/15 bg-white/5">
+              <div className="h-56 w-full md:h-60 md:w-[230px]">
+                <img
+                  src={p.profilePhoto || p.photos[0]}
+                  alt={`${p.user?.name || "Player"} profile`}
+                  className={`h-full w-full ${imageFitClass(p.profilePhoto || p.photos[0])}`}
+                  style={mainPhotoStyle(p)}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex h-56 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-sm text-white/60">
+              No profile photo
+            </div>
+          )}
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">{p.availableNow ? "Available Now" : "Not Available"}</p>
+            <h1 className="mt-2 text-4xl font-bold text-white md:text-5xl">{p.user?.name || "Player"}</h1>
+            <p className="mt-2 text-white/80">{p.headline || "Football & Futsal Player"}</p>
+            <p className="mt-1 text-white/70">{p.location || "Location not set"}</p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(p.positions || []).map((pos: string) => (
+                <span key={`hero-pos-${pos}`} className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-white/90">
+                  {pos}
+                </span>
+              ))}
+              {!(p.positions || []).length ? (
+                <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-white/70">Position not set</span>
+              ) : null}
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <Stat label="Age" value={String(p.age || "-")} />
+              <Stat label="Height" value={`${p.heightCm || "-"} cm`} />
+              <Stat label="Weight" value={`${p.weightKg || "-"} kg`} />
+              <Stat label="Foot" value={String(p.foot || "-")} />
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link href="/ecb-hub" className="btn-muted">
+                Back To Hub
+              </Link>
+              <Link href="/chat" className="btn-primary">
+                Connect In Chat
+              </Link>
             </div>
           </div>
-        ) : null}
-        <p className="text-xs uppercase tracking-[0.16em] text-pitch-200">{p.availableNow ? "Available Now" : "Not Available"}</p>
-        <h1 className="mt-2 text-4xl font-bold text-white">{p.user?.name || "Player"}</h1>
-        <p className="mt-2 text-white/80">{p.headline}</p>
-        <p className="mt-1 text-white/70">{p.location}</p>
-
-        <div className="mt-6 grid gap-3 md:grid-cols-4">
-          <Stat label="Age" value={String(p.age || "-")} />
-          <Stat label="Height" value={`${p.heightCm || "-"} cm`} />
-          <Stat label="Weight" value={`${p.weightKg || "-"} kg`} />
-          <Stat label="Foot" value={String(p.foot || "-")} />
         </div>
       </section>
 

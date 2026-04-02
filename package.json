@@ -7,6 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "smtp:verify:local": "node --env-file=.env.local scripts/smtp-local-test.mjs",
+    "smtp:send:local": "node --env-file=.env.local scripts/smtp-local-test.mjs --send",
+    "mail:users:preview": "node --env-file=.env.local scripts/send-user-welcome-bulk.mjs",
+    "mail:users:send": "node --env-file=.env.local scripts/send-user-welcome-bulk.mjs --send",
     "seed:admin": "node scripts/seed-admin.mjs",
     "seed:user": "node scripts/seed-user.mjs"
   },

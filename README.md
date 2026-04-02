@@ -32,6 +32,7 @@ Vercel-first full-stack football/futsal platform for Bangladesh player discovery
   - `GET|PATCH /api/player/profile`
   - `POST /api/uploads/sign`
   - `GET /api/landing/media`
+  - `POST /api/admin/user-update-mail`
   - `GET|POST /api/auth/[...nextauth]`
 
 ## Local Setup
@@ -131,3 +132,26 @@ Security:
 - Achievement and timeline CRUD
 - Org role onboarding and shortlist system
 - Admin moderation panel
+
+## User Update Mail (Admin)
+Send a friendly product update email to existing users.
+
+Endpoint:
+`POST /api/admin/user-update-mail`
+
+Payload examples:
+
+Preview only (no send):
+```json
+{ "preview": true, "limit": 20 }
+```
+
+Send to players (default role):
+```json
+{ "limit": 50 }
+```
+
+Send one test email first:
+```json
+{ "testEmail": "you@example.com" }
+```

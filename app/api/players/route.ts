@@ -8,6 +8,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const availableNow = searchParams.get("availableNow");
+    const availableThisWeek = searchParams.get("availableThisWeek");
     const minAge = searchParams.get("minAge");
     const maxAge = searchParams.get("maxAge");
     const position = searchParams.get("position");
@@ -16,6 +17,9 @@ export async function GET(request: Request) {
     const filter: Record<string, any> = {};
 
     if (availableNow === "true") filter.availableNow = true;
+    if (availableThisWeek === "true") {
+      filter.$or = [...(filter.$or || []), { availableNow: true }, { availableTime: { $exists: true, $ne: "" } }];
+    }
     if (minAge || maxAge) {
       filter.age = {};
       if (minAge) filter.age.$gte = Number(minAge);
@@ -24,6 +28,7 @@ export async function GET(request: Request) {
     if (position) filter.positions = { $in: [position] };
     if (q) {
       filter.$or = [
+        ...(filter.$or || []),
         { location: { $regex: q, $options: "i" } },
         { positions: { $elemMatch: { $regex: q, $options: "i" } } },
         { headline: { $regex: q, $options: "i" } }
@@ -45,16 +50,23 @@ export async function GET(request: Request) {
           slug: p.slug,
           name: p.user?.name || "Player",
           location: p.location,
+          foot: p.foot || "right",
           age: p.age,
           heightCm: p.heightCm,
           weightKg: p.weightKg,
           positions: p.positions || [],
           availableNow: p.availableNow,
+          availableTime: p.availableTime || "",
+          offDays: p.offDays || [],
+          bio: p.bio || "",
           profilePhoto: p.profilePhoto || (p.photos || [])[0] || "",
           profilePhotoMeta: p.profilePhotoMeta || { x: 50, y: 50, zoom: 1 },
           photos: p.photos || [],
           headline: p.headline,
-          stats: p.stats
+          stats: p.stats,
+          achievementsCount: Array.isArray(p.achievements) ? p.achievements.length : 0,
+          timelineCount: Array.isArray(p.timeline) ? p.timeline.length : 0,
+          updatedAt: p.updatedAt
         }))
     );
   } catch (error: any) {

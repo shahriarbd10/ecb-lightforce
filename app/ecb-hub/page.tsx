@@ -11,11 +11,15 @@ type HubPlayer = {
   slug: string;
   name: string;
   location: string;
+  foot: "left" | "right" | "both";
   age: number;
   heightCm: number;
   weightKg: number;
   positions: string[];
   availableNow: boolean;
+  availableTime?: string;
+  offDays?: string[];
+  bio?: string;
   profilePhoto?: string;
   profilePhotoMeta?: { x?: number; y?: number; zoom?: number };
   photos: string[];
@@ -26,6 +30,9 @@ type HubPlayer = {
     assists?: number;
     cleanSheets?: number;
   };
+  achievementsCount?: number;
+  timelineCount?: number;
+  updatedAt?: string;
 };
 
 type HubPost = {
@@ -56,6 +63,7 @@ export default function EcbHubPage() {
   const [search, setSearch] = useState("");
   const [position, setPosition] = useState("");
   const [availableNow, setAvailableNow] = useState(false);
+  const [availableThisWeek, setAvailableThisWeek] = useState(false);
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
 
@@ -81,10 +89,11 @@ export default function EcbHubPage() {
     if (search) p.set("q", search);
     if (position) p.set("position", position);
     if (availableNow) p.set("availableNow", "true");
+    if (availableThisWeek) p.set("availableThisWeek", "true");
     if (minAge) p.set("minAge", minAge);
     if (maxAge) p.set("maxAge", maxAge);
     return p.toString();
-  }, [availableNow, maxAge, minAge, position, search]);
+  }, [availableNow, availableThisWeek, maxAge, minAge, position, search]);
 
   useEffect(() => {
     let mounted = true;
@@ -278,24 +287,50 @@ export default function EcbHubPage() {
           Premium player discovery, side-by-side comparison, and a live timeline where players publish achievements and match updates.
         </p>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-5">
+        <div className="sticky top-[68px] z-20 mt-6 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl md:p-4">
+          <div className="grid gap-3 md:grid-cols-5">
           <input className="input md:col-span-2" placeholder="Search player, location, role" value={search} onChange={(e) => setSearch(e.target.value)} />
           <input className="input" placeholder="Position (CM, ST)" value={position} onChange={(e) => setPosition(e.target.value)} />
           <input className="input" type="number" placeholder="Min age" value={minAge} onChange={(e) => setMinAge(e.target.value)} />
           <input className="input" type="number" placeholder="Max age" value={maxAge} onChange={(e) => setMaxAge(e.target.value)} />
-        </div>
+          </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <label className="inline-flex items-center gap-2 text-sm text-white/85">
-            <input type="checkbox" checked={availableNow} onChange={(e) => setAvailableNow(e.target.checked)} />
-            Available now only
-          </label>
-          <div className="flex items-center gap-3">
-            <p className="text-xs text-white/60">{players.length} players visible</p>
-            <button type="button" className="btn-primary" onClick={() => setCompareOpen((v) => !v)}>
-              <WhistleIcon />
-              {compareOpen ? "Close Compare" : "Compare Players"}
-            </button>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <label className="inline-flex items-center gap-2 text-sm text-white/85">
+                <input type="checkbox" checked={availableNow} onChange={(e) => setAvailableNow(e.target.checked)} />
+                Available now only
+              </label>
+              <label className="inline-flex items-center gap-2 text-sm text-white/85">
+                <input
+                  type="checkbox"
+                  checked={availableThisWeek}
+                  onChange={(e) => setAvailableThisWeek(e.target.checked)}
+                />
+                Available this week
+              </label>
+              <button
+                type="button"
+                className="text-xs text-pitch-300 underline"
+                onClick={() => {
+                  setSearch("");
+                  setPosition("");
+                  setAvailableNow(false);
+                  setAvailableThisWeek(false);
+                  setMinAge("");
+                  setMaxAge("");
+                }}
+              >
+                Clear filters
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <p className="text-xs text-white/60">{players.length} players visible | {selectedPlayerIds.length} shortlisted</p>
+              <button type="button" className="btn-primary" onClick={() => setCompareOpen((v) => !v)}>
+                <WhistleIcon />
+                {compareOpen ? "Close Compare" : "Compare Players"}
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -321,6 +356,18 @@ export default function EcbHubPage() {
             >
               <button
                 type="button"
+                onClick={() => toggleSelection(player.id)}
+                className={`absolute right-2 top-2 z-10 rounded-full border px-2 py-1 text-[11px] backdrop-blur ${
+                  selectedPlayerIds.includes(player.id)
+                    ? "border-pitch-300/60 bg-pitch-300/20 text-pitch-100"
+                    : "border-white/20 bg-black/45 text-white"
+                }`}
+              >
+                {selectedPlayerIds.includes(player.id) ? "Shortlisted" : "Shortlist"}
+              </button>
+
+              <button
+                type="button"
                 className="w-full text-left"
                 onClick={() => setSelectedPlayer(player)}
               >
@@ -344,10 +391,19 @@ export default function EcbHubPage() {
                   <div className="absolute left-2 top-2 rounded-full border border-white/20 bg-black/45 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-pitch-200 backdrop-blur">
                     {player.availableNow ? "Available" : "Busy"}
                   </div>
+                  <div className="absolute left-2 top-8 rounded-full border border-white/20 bg-black/45 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-emerald-200 backdrop-blur">
+                    Profile {computeProfileCompletion(player)}%
+                  </div>
                 </div>
                 <div className="relative space-y-2 p-3">
                   <h3 className="line-clamp-1 text-base font-semibold text-white">{player.name}</h3>
                   <p className="line-clamp-1 text-xs text-white/75">{player.location} | Age {player.age}</p>
+                  <p className="line-clamp-1 text-[11px] text-white/60">
+                    Foot: {String(player.foot || "right").toUpperCase()} | Updated: {formatDate(player.updatedAt)}
+                  </p>
+                  <p className="line-clamp-1 text-[11px] text-white/70">
+                    {isAvailableThisWeek(player) ? "Available this week" : "Limited this week"} | Achievements: {player.achievementsCount ?? 0}
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
                     {(player.positions || []).slice(0, 3).map((pos) => (
                       <span key={`${player.id}-${pos}`} className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] text-white/90">
@@ -359,6 +415,7 @@ export default function EcbHubPage() {
                     <Metric label="Goals" value={String(player.stats?.goals ?? 0)} compact />
                     <Metric label="Assists" value={String(player.stats?.assists ?? 0)} compact />
                   </div>
+                  <p className="pt-1 text-xs text-pitch-300">Tap card for preview and full profile action</p>
                 </div>
               </button>
             </motion.article>
@@ -428,6 +485,11 @@ export default function EcbHubPage() {
                 {selectedPlayers.map((player) => (
                   <div key={`bars-${player.id}`} className="rounded-xl border border-white/10 bg-white/5 p-3">
                     <p className="mb-2 text-sm font-medium text-white">{player.name}</p>
+                    <div className="mb-3 rounded-lg border border-white/10 bg-black/25 p-2">
+                      <RoleBar label="Attack" value={roleBreakdown(player).attack} />
+                      <RoleBar label="Build" value={roleBreakdown(player).build} />
+                      <RoleBar label="Defend" value={roleBreakdown(player).defend} />
+                    </div>
                     <Bar label="Goals" value={player.stats?.goals ?? 0} max={maxMetric} />
                     <Bar label="Assists" value={player.stats?.assists ?? 0} max={maxMetric} />
                     <Bar label="Matches" value={player.stats?.matches ?? 0} max={maxMetric} />
@@ -547,6 +609,20 @@ function Bar({ label, value, max }: { label: string; value: number; max: number 
   );
 }
 
+function RoleBar({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="mb-2">
+      <div className="mb-1 flex items-center justify-between text-[11px] text-white/75">
+        <span>{label}</span>
+        <span>{Math.round(value)}</span>
+      </div>
+      <div className="h-2 rounded-full bg-white/10">
+        <div className="h-2 rounded-full bg-gradient-to-r from-cyan-300 to-pitch-300" style={{ width: `${Math.max(8, Math.min(100, value))}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function imageFitClass(url: string) {
   const lower = String(url || "").toLowerCase();
   const isIllustration = lower.includes(".png") || lower.includes(".svg") || lower.includes("illustration");
@@ -578,6 +654,50 @@ function formatDateTime(input: string) {
     hour: "2-digit",
     minute: "2-digit"
   });
+}
+
+function formatDate(input?: string) {
+  if (!input) return "-";
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("en-GB", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit"
+  });
+}
+
+function roleBreakdown(player: HubPlayer) {
+  const goals = player.stats?.goals ?? 0;
+  const assists = player.stats?.assists ?? 0;
+  const matches = player.stats?.matches ?? 0;
+  const cleanSheets = player.stats?.cleanSheets ?? 0;
+
+  const attack = Math.min(100, goals * 10 + assists * 4 + matches * 0.8);
+  const build = Math.min(100, assists * 10 + matches * 1.2);
+  const defend = Math.min(100, cleanSheets * 12 + matches * 0.6);
+
+  return { attack, build, defend };
+}
+
+function isAvailableThisWeek(player: HubPlayer) {
+  if (player.availableNow) return true;
+  return Boolean(player.availableTime && String(player.availableTime).trim().length > 0);
+}
+
+function computeProfileCompletion(player: HubPlayer) {
+  const checks = [
+    Boolean(player.headline && player.headline.trim().length >= 8),
+    Boolean(player.bio && player.bio.trim().length >= 40),
+    Array.isArray(player.positions) && player.positions.length >= 2,
+    Boolean(player.profilePhoto || (Array.isArray(player.photos) && player.photos.length > 0)),
+    Array.isArray(player.photos) && player.photos.length >= 3,
+    (player.achievementsCount ?? 0) > 0,
+    (player.timelineCount ?? 0) > 0,
+    Boolean(player.availableNow || (player.availableTime && player.availableTime.trim().length > 0))
+  ];
+  const done = checks.filter(Boolean).length;
+  return Math.round((done / checks.length) * 100);
 }
 
 function HubCardsSkeleton() {
