@@ -94,29 +94,42 @@ export default function NavBar() {
 
   return (
     <header
-      className="sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl"
-      style={{ background: "var(--header-bg)" }}
+      className="sticky top-0 z-40 border-b shadow-sm backdrop-blur-xl"
+      style={{
+        background: "var(--header-bg)",
+        borderColor: "var(--surface-border)"
+      }}
     >
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[2px] opacity-70"
-        style={{ background: "linear-gradient(90deg, transparent, var(--color-navy), transparent)" }}
+        className="pointer-events-none absolute inset-x-0 top-0 h-[3px]"
+        style={{ background: "linear-gradient(90deg, var(--color-primary), var(--color-accent))" }}
       />
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2.5 sm:px-4">
-        <Link href="/" className="group inline-flex items-center gap-2 font-semibold tracking-wide text-white">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8 lg:px-10">
+        <Link href="/" className="group inline-flex items-center gap-3 font-semibold tracking-wide" style={{ color: "var(--page-text)" }}>
           <span
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10"
-            style={{ boxShadow: "var(--header-glow)" }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border bg-opacity-20"
+            style={{ 
+              backgroundColor: "var(--chip-bg)", 
+              borderColor: "var(--chip-border)",
+              color: "var(--color-primary)",
+              transform: "skewX(-10deg)"
+            }}
           >
-            <BallIcon className="text-pitch-200" />
+            <span style={{ transform: "skewX(10deg)" }}><BallIcon className="w-5 h-5" /></span>
           </span>
-          <span className="font-display text-[1.45rem] leading-none">ECB Lightforce</span>
+          <span className="font-display text-2xl leading-none tracking-wide text-[var(--color-primary)] dark:text-white">ECB Lightforce</span>
         </Link>
 
         <div className="flex items-center gap-2 md:hidden">
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-2 text-white"
+            className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border bg-opacity-20 transition"
+            style={{ 
+              backgroundColor: "var(--chip-bg)", 
+              borderColor: "var(--chip-border)",
+              color: "var(--page-text)"
+            }}
             aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
           >
             <ThemeIcon theme={theme} />
@@ -124,7 +137,12 @@ export default function NavBar() {
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border bg-opacity-20 transition"
+            style={{ 
+              backgroundColor: "var(--chip-bg)", 
+              borderColor: "var(--chip-border)",
+              color: "var(--page-text)"
+            }}
             aria-label="Toggle menu"
             aria-expanded={menuOpen}
           >
@@ -132,45 +150,41 @@ export default function NavBar() {
           </button>
         </div>
 
-        <div className="hidden items-center gap-2 text-sm md:flex">
+        <div className="hidden items-center gap-4 text-sm md:flex font-semibold tracking-wide">
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-white/85 transition hover:bg-white/20"
+            className="inline-flex items-center gap-2 px-3 py-2 transition text-slate-600 hover:text-[var(--color-primary)] dark:text-slate-300 dark:hover:text-white"
             aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
           >
             <ThemeIcon theme={theme} />
-            {theme === "light" ? "Dark" : "Light"}
+            <span className="text-xs uppercase">{theme === "light" ? "Dark" : "Light"}</span>
           </button>
-          <Link href="/ecb-hub" className="rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
+
+          <Link href="/ecb-hub" className="px-2 py-2 transition text-slate-600 hover:text-[var(--color-primary)] dark:text-slate-300 dark:hover:text-white uppercase text-xs">
             Lightforce Hub
           </Link>
-          <Link href="/live-feed" className="rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
+          <Link href="/live-feed" className="px-2 py-2 transition text-slate-600 hover:text-[var(--color-primary)] dark:text-slate-300 dark:hover:text-white uppercase text-xs">
             Live Feed
           </Link>
 
           {isLoggedIn ? (
             <>
-              <Link href="/dashboard" className="rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
+              <Link href="/dashboard" className="px-2 py-2 transition text-slate-600 hover:text-[var(--color-primary)] dark:text-slate-300 dark:hover:text-white uppercase text-xs">
                 Dashboard
               </Link>
               {session?.user?.role === "player" ? (
-                <Link href="/chat" className="relative rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
+                <Link href="/chat" className="relative px-2 py-2 transition text-slate-600 hover:text-[var(--color-primary)] dark:text-slate-300 dark:hover:text-white uppercase text-xs">
                   Chat
-                  {chatHasUnread ? <span className="absolute -right-0.5 top-1.5 h-2.5 w-2.5 rounded-full bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.75)]" /> : null}
+                  {chatHasUnread ? <span className="absolute -right-1 top-2 h-2.5 w-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" /> : null}
                 </Link>
               ) : null}
-              <button
-                type="button"
-                onClick={() => signOut({ callbackUrl: "/login" })}
-                className="rounded-full border border-white/20 px-3 py-1.5 text-white/85 transition hover:bg-white/10"
-              >
-                <BootIcon className="mr-1 inline-block text-pitch-200" />
-                Logout
-              </button>
-              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-2 py-1">
+              
+              <div className="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-1 border-none" />
+
+              <div className="flex items-center gap-2 rounded-lg border px-2 py-1.5" style={{ backgroundColor: "var(--surface-bg)", borderColor: "var(--surface-border)" }}>
                 {avatar ? (
-                  <div className="h-8 w-8 overflow-hidden rounded-full border border-white/20">
+                  <div className="h-7 w-7 overflow-hidden rounded-md border" style={{ borderColor: "var(--surface-border)" }}>
                     <img
                       src={avatar}
                       alt={userName}
@@ -179,20 +193,29 @@ export default function NavBar() {
                     />
                   </div>
                 ) : (
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-pitch-400 font-semibold text-black">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md font-bold text-xs" style={{ backgroundColor: "var(--color-primary)", color: "#fff" }}>
                     {userName.slice(0, 1).toUpperCase()}
                   </span>
                 )}
-                <span className="pr-2 text-xs text-white">{userName}</span>
+                <span className="pr-2 text-xs font-bold" style={{ color: "var(--page-text)" }}>{userName}</span>
               </div>
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="px-3 py-1.5 transition text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 uppercase text-xs flex items-center"
+              >
+                <BootIcon className="mr-1.5 inline-block w-4 h-4" />
+                Logout
+              </button>
             </>
           ) : (
             <>
-              <Link href="/register" className="rounded-full border border-transparent px-3 py-2 text-white/80 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
-                Join
+              <div className="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-1 border-none" />
+              <Link href="/register" className="px-3 py-2 transition text-slate-600 hover:text-[var(--color-primary)] dark:text-slate-300 dark:hover:text-white uppercase text-xs font-bold">
+                Join Network
               </Link>
-              <Link href="/login?callbackUrl=/dashboard" className="btn-primary rounded-full px-4 py-1.5 font-medium text-black">
-                <BallIcon className="mr-1 inline-block" />
+              <Link href="/login?callbackUrl=/dashboard" className="btn-primary" style={{ padding: "0.5rem 1.25rem", fontSize: "0.9rem" }}>
+                <BallIcon className="mr-1 inline-block w-4 h-4" />
                 Login
               </Link>
             </>
@@ -201,37 +224,38 @@ export default function NavBar() {
       </nav>
 
       {menuOpen ? (
-        <div className="border-t border-white/10 bg-black/40 px-3 py-3 backdrop-blur-xl md:hidden">
-          <div className="mx-auto flex max-w-6xl flex-col gap-2">
+        <div className="border-t bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-xl md:hidden" style={{ borderColor: "var(--surface-border)" }}>
+          <div className="flex flex-col p-4 space-y-3 font-semibold uppercase text-sm tracking-wide">
             <button
               type="button"
               onClick={toggleTheme}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90"
+              className="flex items-center gap-3 p-3 rounded-lg border text-slate-700 dark:text-slate-200"
+              style={{ backgroundColor: "var(--surface-bg)", borderColor: "var(--surface-border)" }}
             >
               <ThemeIcon theme={theme} />
               Switch to {theme === "light" ? "dark" : "light"} mode
             </button>
-            <Link href="/ecb-hub" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
+            <Link href="/ecb-hub" className="p-3 rounded-lg border text-slate-700 dark:text-slate-200" style={{ backgroundColor: "var(--surface-bg)", borderColor: "var(--surface-border)" }}>
               Lightforce Hub
             </Link>
-            <Link href="/live-feed" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
+            <Link href="/live-feed" className="p-3 rounded-lg border text-slate-700 dark:text-slate-200" style={{ backgroundColor: "var(--surface-bg)", borderColor: "var(--surface-border)" }}>
               Live Feed
             </Link>
 
             {isLoggedIn ? (
               <>
-                <Link href="/dashboard" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
+                <Link href="/dashboard" className="p-3 rounded-lg border text-slate-700 dark:text-slate-200" style={{ backgroundColor: "var(--surface-bg)", borderColor: "var(--surface-border)" }}>
                   Dashboard
                 </Link>
                 {session?.user?.role === "player" ? (
-                  <Link href="/chat" className="relative rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
+                  <Link href="/chat" className="relative p-3 rounded-lg border text-slate-700 dark:text-slate-200" style={{ backgroundColor: "var(--surface-bg)", borderColor: "var(--surface-border)" }}>
                     Chat
-                    {chatHasUnread ? <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.75)]" /> : null}
+                    {chatHasUnread ? <span className="absolute right-3 top-4 h-2.5 w-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" /> : null}
                   </Link>
                 ) : null}
-                <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                <div className="flex items-center gap-3 p-3 rounded-lg border" style={{ backgroundColor: "var(--surface-bg)", borderColor: "var(--surface-border)" }}>
                   {avatar ? (
-                    <div className="h-8 w-8 overflow-hidden rounded-full border border-white/20">
+                    <div className="h-8 w-8 overflow-hidden rounded-md border" style={{ borderColor: "var(--surface-border)" }}>
                       <img
                         src={avatar}
                         alt={userName}
@@ -240,28 +264,29 @@ export default function NavBar() {
                       />
                     </div>
                   ) : (
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-pitch-400 font-semibold text-black">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-md font-bold text-white text-xs" style={{ backgroundColor: "var(--color-primary)" }}>
                       {userName.slice(0, 1).toUpperCase()}
                     </span>
                   )}
-                  <span className="text-sm text-white">{userName}</span>
+                  <span className="text-slate-800 dark:text-white">{userName}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => signOut({ callbackUrl: "/login" })}
-                  className="rounded-xl border border-white/20 px-3 py-2 text-sm text-white/85 transition hover:bg-white/10"
+                  className="flex items-center gap-3 p-3 rounded-lg border text-red-600 dark:text-red-400"
+                  style={{ backgroundColor: "var(--surface-bg)", borderColor: "var(--surface-border)" }}
                 >
-                  <BootIcon className="mr-1 inline-block text-pitch-200" />
+                  <BootIcon className="w-5 h-5" />
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <Link href="/register" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
-                  Join
+                <Link href="/register" className="p-3 rounded-lg border text-slate-700 dark:text-slate-200" style={{ backgroundColor: "var(--surface-bg)", borderColor: "var(--surface-border)" }}>
+                  Join Network
                 </Link>
-                <Link href="/login?callbackUrl=/dashboard" className="btn-primary justify-center rounded-xl px-4 py-2 text-sm font-medium text-black">
-                  <BallIcon className="mr-1 inline-block" />
+                <Link href="/login?callbackUrl=/dashboard" className="btn-primary w-full justigy-center py-3">
+                  <BallIcon className="mr-2 inline-block w-5 h-5" />
                   Login
                 </Link>
               </>
@@ -275,22 +300,22 @@ export default function NavBar() {
 
 function ThemeIcon({ theme }: { theme: "light" | "dark" }) {
   return theme === "light" ? (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="opacity-80">
       <path
         d="M20 15.5A8 8 0 1 1 8.5 4C8.5 10.2 13.8 15.5 20 15.5Z"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>
   ) : (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.7" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="opacity-80">
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
       <path
         d="M12 2V4.5M12 19.5V22M4.93 4.93L6.7 6.7M17.3 17.3L19.07 19.07M2 12H4.5M19.5 12H22M4.93 19.07L6.7 17.3M17.3 6.7L19.07 4.93"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="2"
         strokeLinecap="round"
       />
     </svg>
@@ -299,8 +324,8 @@ function ThemeIcon({ theme }: { theme: "light" | "dark" }) {
 
 function MenuIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M4 7H20M4 12H20M4 17H20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7H20M4 12H20M4 17H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }

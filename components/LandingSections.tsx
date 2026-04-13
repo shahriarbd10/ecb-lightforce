@@ -227,7 +227,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
         style={{ background: "var(--landing-overlay)" }}
       />
 
-      <section className="relative mx-auto grid min-h-[86vh] max-w-6xl gap-8 px-4 py-20 lg:grid-cols-[1.15fr_1fr]">
+      <section className="relative mx-auto grid min-h-[86vh] w-full max-w-7xl gap-8 px-4 py-20 sm:px-6 lg:px-8 lg:grid-cols-[1.15fr_1fr]">
         <div className="flex flex-col justify-center">
           <motion.p
             initial="hidden"
@@ -330,7 +330,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
         </motion.div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-4">
+      <section className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 md:pt-12">
         <div className="glass-panel overflow-hidden p-0">
           <video
             className="h-[260px] w-full object-cover md:h-[420px]"
@@ -362,7 +362,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
         </div>
       </section>
 
-      <section className="relative mx-auto mt-2 max-w-6xl px-4">
+      <section className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="glass-panel relative overflow-hidden p-6 md:p-10">
           <motion.div
             animate={{ rotate: [0, 1.5, -1.5, 0] }}
@@ -409,7 +409,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-4">
+      <section className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-12">
         <div className="glass-panel grid gap-4 p-5 md:grid-cols-4">
           {[
             ["Modern Profiles", "Stats + positions + achievements + photos"],
@@ -426,7 +426,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
       </section>
 
       {content.sections.showPulse ? (
-      <section className="relative mx-auto mt-12 max-w-6xl px-4">
+      <section className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-16">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-2">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.pulseEyebrow}</p>
@@ -493,7 +493,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
       ) : null}
 
       {content.sections.showVideoZone ? (
-      <section className="relative mx-auto mt-12 max-w-6xl px-4">
+      <section className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-16">
         <div className="mb-6">
           <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.videoEyebrow}</p>
           <h3 className="font-display mt-2 text-4xl text-white md:text-5xl">{content.labels.videoTitle}</h3>
@@ -530,7 +530,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
       ) : null}
 
       {content.sections.showSpotlight ? (
-      <section className="relative mx-auto mt-12 max-w-6xl px-4">
+      <section className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-16">
         <div className="mb-6">
           <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.spotlightEyebrow}</p>
           <h3 className="font-display mt-2 text-4xl text-white md:text-5xl">{content.labels.spotlightTitle}</h3>
@@ -563,7 +563,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
       ) : null}
 
       {content.sections.showReels ? (
-      <section className="relative mx-auto mt-12 max-w-6xl px-4">
+      <section className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-16">
         <div className="mb-6">
           <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.reelsEyebrow}</p>
           <h3 className="font-display mt-2 text-4xl text-white md:text-5xl">{content.labels.reelsTitle}</h3>
@@ -599,7 +599,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
       ) : null}
 
       {content.sections.showAds ? (
-      <section className="relative mx-auto mt-12 max-w-6xl px-4">
+      <section className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-16">
         <div className="mb-6">
           <p className="text-xs uppercase tracking-[0.2em] text-pitch-200">{content.labels.adsEyebrow}</p>
           <h3 className="font-display mt-2 text-4xl text-white md:text-5xl">{content.labels.adsTitle}</h3>
@@ -629,7 +629,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
       </section>
       ) : null}
 
-      <section className="relative mx-auto mt-14 max-w-6xl px-4">
+      <section className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-16">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -677,7 +677,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
         </div>
       </section>
 
-      <section className="relative mx-auto mt-14 max-w-6xl px-4">
+      <section className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-16">
         <div className="grid gap-5 lg:grid-cols-[1fr_1.05fr]">
           <div className="relative overflow-hidden rounded-2xl">
             <img
