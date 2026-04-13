@@ -12,18 +12,18 @@ html[data-theme="light"] {
   
   --surface-bg: #FFFFFF;
   --surface-soft-bg: #F8FAFC;
-  --surface-border: #E2E8F0;
+  --surface-border: #CBD5E1;
   --surface-focus: #0047FF;
   --surface-text: #0F172A;
-  --surface-muted: #64748B;
+  --surface-muted: #334155; /* much darker slate for better readability */
   --surface-option-bg: #F8FAFC;
   
   --page-bg-solid: #FDFEFF;
-  --page-text: #0F172A;
-  --page-text-muted: #475569;
+  --page-text: #020617; /* nearly black for max contrast */
+  --page-text-muted: #1E293B; /* slate-800 for readable muted text */
   
   --chip-bg: rgba(0, 71, 255, 0.08);
-  --chip-border: rgba(0, 71, 255, 0.15);
+  --chip-border: rgba(0, 71, 255, 0.2);
   --overlay-soft: rgba(15, 23, 42, 0.05);
   
   --button-primary-bg: #0047FF;
@@ -38,7 +38,7 @@ html[data-theme="light"] {
   
   --page-bg-image: radial-gradient(100% 100% at 50% 0%, rgba(0, 112, 243, 0.03) 0%, transparent 100%);
   --header-bg: rgba(255, 255, 255, 0.95);
-  --header-glow: 0 4px 16px rgba(0, 71, 255, 0.06);
+  --header-glow: 0 4px 16px rgba(0, 71, 255, 0.08);
 }
 
 html[data-theme="dark"] {
@@ -267,3 +267,8 @@ html[data-theme="dark"] .sports-badge {
 :where(.text-white\/90, .text-white\/85, .text-white\/80, .text-white\/75, .text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50) {
   color: var(--page-text-muted) !important;
 }
+
+html[data-theme="light"] :where(.text-pitch-100, .text-pitch-200, .text-pitch-300) {
+  color: var(--color-primary-dark) !important;
+}
+
