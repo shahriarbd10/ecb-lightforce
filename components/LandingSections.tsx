@@ -52,14 +52,19 @@ type LandingFeed = {
 
 const heroSlides = [
   {
-    image: "/images/hero_football_action.png",
+    image: "/images/male_hero_football.png",
     badge: "Live Exposure",
     text: "Players showcase stats, timeline, and availability."
   },
   {
-    image: "/images/match_ready_player.png",
+    image: "/images/male_match_ready.png", /* Explicitly a male soccer player */
     badge: "Match Ready",
     text: "Update your availability and get discovered for the next fixture."
+  },
+  {
+    image: "/images/male_futsal_skill.png", /* Explicitly a male futsal player */
+    badge: "Futsal Core",
+    text: "Master the quick game and build your technical reputation indoors."
   },
   {
     image: "/images/futsal_pitch_action.png",
