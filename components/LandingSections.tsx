@@ -52,17 +52,17 @@ type LandingFeed = {
 
 const heroSlides = [
   {
-    image: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=1400&q=80",
+    image: "/images/hero_football_action.png",
     badge: "Live Exposure",
     text: "Players showcase stats, timeline, and availability."
   },
   {
-    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1400&q=80",
+    image: "/images/match_ready_player.png",
     badge: "Match Ready",
     text: "Update your availability and get discovered for the next fixture."
   },
   {
-    image: "https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=1400&q=80",
+    image: "/images/futsal_pitch_action.png",
     badge: "Talent Network",
     text: "From campus grounds to club opportunities through ECB Lightforce."
   }
@@ -338,7 +338,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
             muted
             loop
             playsInline
-            poster="https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=1600&q=80"
+            poster="/images/futsal_pitch_action.png"
           >
             <source
               src="https://player.vimeo.com/external/434045526.sd.mp4?s=c8f32e29bf2e6cdffedfd30d318fa6f0c2e6514a&profile_id=165&oauth2_token_id=57447761"
@@ -681,7 +681,7 @@ export default function LandingSections({ previewData = null, previewMode = fals
         <div className="grid gap-5 lg:grid-cols-[1fr_1.05fr]">
           <div className="relative overflow-hidden rounded-2xl">
             <img
-              src="https://images.unsplash.com/photo-1486286701208-1d58e9338013?auto=format&fit=crop&w=1400&q=80"
+              src="/images/football_training_drill.png"
               alt="Football training session"
               className="h-[320px] w-full object-cover md:h-[420px]"
             />
