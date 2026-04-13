@@ -254,3 +254,16 @@ html[data-theme="dark"] .sports-badge {
 .glass-soft {
   @apply sports-panel shadow-none bg-opacity-70;
 }
+
+/* Global utility overrides for legacy white text to adapt to theme */
+:where(.text-white) {
+  color: var(--page-text) !important;
+}
+
+:where(.text-white\/95) {
+  color: color-mix(in srgb, var(--page-text) 95%, transparent) !important;
+}
+
+:where(.text-white\/90, .text-white\/85, .text-white\/80, .text-white\/75, .text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50) {
+  color: var(--page-text-muted) !important;
+}
